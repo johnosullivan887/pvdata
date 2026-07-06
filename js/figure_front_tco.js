@@ -2,9 +2,9 @@ function renderFrontTcoPlot(rows) {
   const plotDiv = document.getElementById("front-tco-plot");
   if (!plotDiv) return;
 
-  // Force a wide rectangular plot area
+  // Keep the plot in a wide landscape layout
   plotDiv.style.width = "100%";
-  plotDiv.style.height = "650px";
+  plotDiv.style.height = "520px";
 
   const cleanRows = rows
     .map((row) => ({
@@ -22,14 +22,12 @@ function renderFrontTcoPlot(rows) {
     ? cleanRows.filter((row) => row.certified === "yes")
     : cleanRows;
 
-  // Keep points in chronological order
   plotRows.sort((a, b) => a.date - b.date);
 
-  // Raw categories, each gets its own style
-  const categories = [...new Set(plotRows.map((row) => row.frontTCO))]
-    .sort((a, b) => a.localeCompare(b));
+  const categories = [...new Set(plotRows.map((row) => row.frontTCO))].sort(
+    (a, b) => a.localeCompare(b)
+  );
 
-  // Distinct marker shapes
   const markerSymbols = [
     "circle",
     "diamond",
@@ -47,7 +45,6 @@ function renderFrontTcoPlot(rows) {
     "triangle-right"
   ];
 
-  // Distinct colours chosen to stay visually separated
   const markerColors = [
     "#1f77b4",
     "#ff7f0e",
@@ -95,9 +92,9 @@ function renderFrontTcoPlot(rows) {
       y: group.map((row) => row.efficiency),
       marker: {
         symbol: style.marker,
-        size: 11,
+        size: 10,
         color: style.color,
-        opacity: 0.78,
+        opacity: 0.72,
         line: { color: "#1a1a1a", width: 0.8 }
       },
       hovertemplate:
@@ -110,8 +107,8 @@ function renderFrontTcoPlot(rows) {
 
   const layout = {
     autosize: true,
-    height: 650,
-    margin: { l: 65, r: 20, t: 20, b: 55 },
+    height: 520,
+    margin: { l: 65, r: 20, t: 18, b: 55 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     font: {
@@ -124,8 +121,11 @@ function renderFrontTcoPlot(rows) {
       tickformat: "%Y",
       dtick: "M12",
       showline: true,
-      linecolor: "#222222",
+      linecolor: "#666666",
       zeroline: false,
+      showgrid: true,
+      gridcolor: "#e6e6e6",
+      gridwidth: 0.6,
       range: [CONFIG.xMin, CONFIG.xMax]
     },
     yaxis: {
@@ -133,16 +133,20 @@ function renderFrontTcoPlot(rows) {
       range: [CONFIG.efficiency.min, CONFIG.efficiency.max],
       dtick: 5,
       showline: true,
-      linecolor: "#222222",
-      zeroline: false
+      linecolor: "#666666",
+      zeroline: false,
+      showgrid: true,
+      gridcolor: "#e6e6e6",
+      gridwidth: 0.6
     },
     legend: {
       orientation: "v",
       x: 0.02,
       y: 0.98,
-      bgcolor: "rgba(255,255,255,0.90)",
-      bordercolor: "#dddddd",
-      borderwidth: 1
+      bgcolor: "rgba(255,255,255,0.92)",
+      bordercolor: "#d0d0d0",
+      borderwidth: 1,
+      font: { size: 12 }
     }
   };
 
