@@ -29,6 +29,16 @@ function parseCSV(text) {
   });
 }
 
+function parseDate(value) {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function parseNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function renderDatabase(rows) {
   const databaseSection = document.querySelector("#database .panel");
   if (!databaseSection) return;
@@ -65,11 +75,93 @@ function renderDatabase(rows) {
   `;
 }
 
+function renderFrontTcoPlot(rows) {
+  const plotDiv = document.getElementById("front-tco-plot");
+  if (!plotDiv) return;
+
+  const cleanRows = rows
+    .map((row) => ({
+      date: parseDate(row["Publishing date"]),
+      efficiency: parseNumber(row["n tandem"]),
+      frontTCO: (row["Front TCO"] || "").trim(),
+      certified: (row["certified"] || "").trim().toLowerCase()
+    }))
+    .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
+
+  const certifiedRows = cleanRows.filter((row) => row.certified === "yes");
+
+  const categories = [...new Set(certifiedRows.map((row) => row.frontTCO))];
+
+  const colorMap = {
+    ITO: { marker: "circle", color: "#f8a17b", line: "#d29343" },
+    IZO: { marker: "diamond", color: "#84a8ac", line: "#0a285c" },
+    "Doped-InOx": { marker: "square", color: "#9db5aa", line: "#3c6d56" },
+    "In-free": { marker: "triangle-up", color: "#d29343", line: "#d29343" }
+  };
+
+  const traces = categories.map((cat) => {
+    const group = certifiedRows.filter((row) => row.frontTCO === cat);
+    const style = colorMap[cat] || {
+      marker: "triangle-down",
+      color: "#b26eb5",
+      line: "#011959"
+    };
+
+    return {
+      type: "scatter",
+      mode: "markers",
+      name: cat,
+      x: group.map((row) => row.date),
+      y: group.map((row) => row.efficiency),
+      marker: {
+        symbol: style.marker,
+        size: 11,
+        color: style.color,
+        line: { color: style.line, width: 1 }
+      },
+      hovertemplate:
+        "<b>%{x|%Y-%m-%d}</b><br>" +
+        "Efficiency: %{y:.2f}%<br>" +
+        "Front TCO: " + cat +
+        "<extra></extra>"
+    };
+  });
+
+  const layout = {
+    margin: { l: 65, r: 20, t: 20, b: 60 },
+    paper_bgcolor: "#ffffff",
+    plot_bgcolor: "#ffffff",
+    xaxis: {
+      title: "Publication date",
+      tickformat: "%Y",
+      dtick: "M12",
+      showline: true,
+      linecolor: "#10233f"
+    },
+    yaxis: {
+      title: "Power conversion efficiency (%)",
+      range: [15, 36],
+      dtick: 5,
+      showline: true,
+      linecolor: "#10233f"
+    },
+    legend: {
+      orientation: "v",
+      x: 0.02,
+      y: 0.98
+    }
+  };
+
+  Plotly.newPlot(plotDiv, traces, layout, { responsive: true });
+}
+
 async function loadData() {
   const response = await fetch("data/tandem.csv");
   const text = await response.text();
   tableData = parseCSV(text);
+
   renderDatabase(tableData);
+  renderFrontTcoPlot(tableData);
 }
 
 loadData().catch((error) => {
