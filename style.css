@@ -235,3 +235,30 @@ body {
   font-size: 14px;
   user-select: none;
 }
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 1400px;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid #d9e2ef;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  background: #f3f6fb;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
