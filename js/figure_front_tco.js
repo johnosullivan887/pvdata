@@ -11,15 +11,20 @@ function renderFrontTcoPlot(rows) {
     }))
     .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
 
-  const certifiedRows = cleanRows.filter((row) => row.certified === "yes");
+  const includeUncertified = document.getElementById("include-uncertified")?.checked ?? false;
+  
+  const plotRows = includeUncertified
+    ? cleanRows
+    : cleanRows.filter((row) => row.certified === "yes");
+  
   console.log("Total rows:", rows.length);
   console.log("Valid rows:", cleanRows.length);
-  console.log("Certified rows:", certifiedRows.length);
-  const categories = [...new Set(certifiedRows.map((row) => row.frontTCO))];
-
+  console.log("Plotted rows:", plotRows.length);
+  
+  const categories = [...new Set(plotRows.map((row) => row.frontTCO))];
   const traces = categories.map((cat) => {
-    const group = certifiedRows.filter((row) => row.frontTCO === cat);
-
+    const group = plotRows.filter((row) => row.frontTCO === cat);
+    
     const style = {
       marker: CONFIG.frontTCOMarkers[cat] || CONFIG.frontTCOMarkers.Other,
       color: CONFIG.frontTCOColours[cat] || CONFIG.frontTCOColours.Other
@@ -73,3 +78,9 @@ function renderFrontTcoPlot(rows) {
 
   Plotly.newPlot(plotDiv, traces, layout, { responsive: true });
 }
+
+document.addEventListener("change", (event) => {
+  if (event.target && event.target.id === "include-uncertified" && window.__tableData) {
+    renderFrontTcoPlot(window.__tableData);
+  }
+});
