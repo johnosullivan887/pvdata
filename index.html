@@ -98,18 +98,21 @@
     </section>
 
     <section id="figures" class="view">
-      <div class="panel">
-        <h2>Figures</h2>
+      <div class="figure-layout">
+        <aside class="control-panel">
+          <h2>Controls</h2>
     
-        <div class="figure-controls">
-          <label class="toggle">
+          <label class="control-item">
             <input type="checkbox" id="certified-only" checked />
             Show certified values only
           </label>
-        </div>
+        </aside>
     
-        <div id="front-tco-plot" style="width: 100%; height: 650px;"></div>
-        <div id="indium-plot" style="width: 100%; height: 650px; margin-top: 30px;"></div>
+        <div class="figure-panel">
+          <h2>Front TCO</h2>
+          <div id="front-tco-plot" style="width: 100%; height: 650px;"></div>
+          <div id="indium-plot" style="width: 100%; height: 650px; margin-top: 30px;"></div>
+        </div>
       </div>
     </section>
     
