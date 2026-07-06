@@ -43,19 +43,62 @@ function renderDatabase(rows) {
   const databaseSection = document.querySelector("#database .panel");
   if (!databaseSection) return;
 
-  const previewRows = rows.slice(0, 10);
+  const rowsHtml = rows.map((row) => {
+    const ref = row["Reference"] || row["Reference link"] || row["DOI"] || "";
+    const refHtml = ref
+      ? /^https?:\/\//i.test(ref)
+        ? `<a href="${ref}" target="_blank" rel="noopener noreferrer">Open</a>`
+        : ref
+      : "";
 
-  const htmlRows = previewRows.map((row) => {
     return `
       <tr>
         <td>${row["Author"] || ""}</td>
-        <td>${row["Year"] || ""}</td>
-        <td>${row["n tandem"] || ""}</td>
-        <td>${row["Front TCO"] || ""}</td>
+        <td>${row["Publishing date"] || row["Date"] || row["Year"] || ""}</td>
+        <td>${row["Si Bottom cell type"] || row["Cell"] || ""}</td>
+        <td>${row["Interlayer TCE"] || row["Inter-layer"] || ""}</td>
+        <td>${row["IL thickness (nm)"] || row["Inter-layer thickness"] || ""}</td>
+        <td>${row["Rear Electrode"] || row["Rear electrode"] || ""}</td>
+        <td>${row["Rear TCE thickness (nm)"] || row["Rear TCO thickness"] || ""}</td>
+        <td>${row["Active Area (cm2)"] || row["Cell active area"] || ""}</td>
+        <td>${row["Front TCE (fTCE)"] || row["Front TCO"] || ""}</td>
+        <td>${row["fTCE thickness (nm)"] || row["Front TCO thickness"] || ""}</td>
+        <td>${row["η (%)"] || row["n tandem"] || ""}</td>
+        <td>${row["Certified (yes/no)"] || row["Certified"] || row["certified"] || ""}</td>
+        <td>${refHtml}</td>
       </tr>
     `;
   }).join("");
 
+  databaseSection.innerHTML = `
+    <h2>Database</h2>
+    <p><strong>Loaded ${rows.length} rows from tandem.csv.</strong></p>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Author</th>
+            <th>Date</th>
+            <th>Si Bottom cell type</th>
+            <th>Interlayer TCE</th>
+            <th>IL thickness (nm)</th>
+            <th>Rear Electrode</th>
+            <th>Rear TCE thickness (nm)</th>
+            <th>Active Area (cm2)</th>
+            <th>Front TCE (fTCE)</th>
+            <th>fTCE thickness (nm)</th>
+            <th>η (%)</th>
+            <th>Certified (yes/no)</th>
+            <th>Reference (link to paper)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
   databaseSection.innerHTML = `
     <h2>Database</h2>
     <p><strong>Loaded ${rows.length} rows from tandem.csv.</strong></p>
