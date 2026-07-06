@@ -21,15 +21,73 @@ function renderFrontTcoPlot(rows) {
   console.log("Valid rows:", cleanRows.length);
   console.log("Plotted rows:", plotRows.length);
   
-  const categories = [...new Set(plotRows.map((row) => row.frontTCO))];
+  const categories = [...new Set(plotRows.map((row) => row.frontTCO))].sort();
+
+  const markerSymbols = [
+    "circle",
+    "diamond",
+    "square",
+    "triangle-up",
+    "triangle-down",
+    "cross",
+    "x",
+    "star",
+    "hexagon",
+    "hourglass",
+    "bowtie",
+    "triangle-left",
+    "triangle-right",
+    "pentagon"
+  ];
+
+  const markerColors = [
+    "#011959",
+    "#0A285C",
+    "#103F60",
+    "#1C5A62",
+    "#3C6D56",
+    "#687B3E",
+    "#9D892B",
+    "#D29343",
+    "#F8A17B",
+    "#FDB7BC",
+    "#FACCFA",
+    "#6A4C93",
+    "#2A9D8F",
+    "#E76F51"
+  ];
+
+  const styleMap = {};
+  categories.forEach((cat, i) => {
+    styleMap[cat] = {
+      marker: markerSymbols[i % markerSymbols.length],
+      color: markerColors[i % markerColors.length]
+    };
+  });
+
   const traces = categories.map((cat) => {
     const group = plotRows.filter((row) => row.frontTCO === cat);
-    
-    const style = {
-      marker: CONFIG.frontTCOMarkers[cat] || CONFIG.frontTCOMarkers.Other,
-      color: CONFIG.frontTCOColours[cat] || CONFIG.frontTCOColours.Other
-    };
+    const style = styleMap[cat];
 
+    return {
+      type: "scatter",
+      mode: "markers",
+      name: cat,
+      x: group.map((row) => row.date),
+      y: group.map((row) => row.efficiency),
+      marker: {
+        symbol: style.marker,
+        size: 11,
+        color: style.color,
+        line: { color: "#011959", width: 1 }
+      },
+      hovertemplate:
+        "<b>%{x|%Y-%m-%d}</b><br>" +
+        "Efficiency: %{y:.2f}%<br>" +
+        "Front TCO: " + cat +
+        "<extra></extra>"
+    };
+  });
     return {
       type: "scatter",
       mode: "markers",
