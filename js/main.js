@@ -15,7 +15,6 @@ navButtons.forEach((button) => {
   });
 });
 
-
 function parseDate(value) {
   if (!value) return null;
 
@@ -29,46 +28,58 @@ function parseDate(value) {
     return isNaN(d.getTime()) ? null : d;
   }
 
-  // Fallback for ISO dates
+  // Fallback for ISO dates or browser-parsable formats
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
 
 function parseNumber(value) {
-  const n = Number(value);
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(String(value).replace(/,/g, "").trim());
   return Number.isFinite(n) ? n : null;
+}
+
+function buildReferenceCell(row) {
+  const ref = row["Reference"] || row["Reference link"] || row["DOI"] || "";
+
+  if (!ref) return "";
+
+  if (/^https?:\/\//i.test(ref)) {
+    return `<a href="${ref}" target="_blank" rel="noopener noreferrer">Open</a>`;
+  }
+
+  if (/^10\.\d{4,9}\//i.test(ref)) {
+    return `<a href="https://doi.org/${ref}" target="_blank" rel="noopener noreferrer">Open</a>`;
+  }
+
+  return ref;
 }
 
 function renderDatabase(rows) {
   const databaseSection = document.querySelector("#database .panel");
   if (!databaseSection) return;
 
-  const rowsHtml = rows.map((row) => {
-    const ref = row["Reference"] || row["Reference link"] || row["DOI"] || "";
-    const refHtml = ref
-      ? /^https?:\/\//i.test(ref)
-        ? `<a href="${ref}" target="_blank" rel="noopener noreferrer">Open</a>`
-        : ref
-      : "";
-
-    return `
-      <tr>
-        <td>${row["Author"] || ""}</td>
-        <td>${row["Publishing date"] || row["Date"] || row["Year"] || ""}</td>
-        <td>${row["Si Bottom cell type"] || row["Cell"] || ""}</td>
-        <td>${row["Interlayer TCE"] || row["Inter-layer"] || ""}</td>
-        <td>${row["IL thickness (nm)"] || row["Inter-layer thickness"] || ""}</td>
-        <td>${row["Rear Electrode"] || row["Rear electrode"] || ""}</td>
-        <td>${row["Rear TCE thickness (nm)"] || row["Rear TCO thickness"] || ""}</td>
-        <td>${row["Active Area (cm2)"] || row["Cell active area"] || ""}</td>
-        <td>${row["Front TCE (fTCE)"] || row["Front TCO"] || ""}</td>
-        <td>${row["fTCE thickness (nm)"] || row["Front TCO thickness"] || ""}</td>
-        <td>${row["η (%)"] || row["n tandem"] || ""}</td>
-        <td>${row["Certified (yes/no)"] || row["Certified"] || row["certified"] || ""}</td>
-        <td>${refHtml}</td>
-      </tr>
-    `;
-  }).join("");
+  const rowsHtml = rows
+    .map((row) => {
+      return `
+        <tr>
+          <td>${row["Author"] || ""}</td>
+          <td>${row["Publishing date"] || row["Date"] || row["Year"] || ""}</td>
+          <td>${row["Si Bottom cell type"] || row["Cell"] || ""}</td>
+          <td>${row["Interlayer TCE"] || row["Inter-layer"] || ""}</td>
+          <td>${row["IL thickness (nm)"] || row["Inter-layer thickness"] || ""}</td>
+          <td>${row["Rear Electrode"] || row["Rear electrode"] || ""}</td>
+          <td>${row["Rear TCE thickness (nm)"] || row["Rear TCO thickness"] || ""}</td>
+          <td>${row["Active Area (cm2)"] || row["Cell active area"] || ""}</td>
+          <td>${row["Front TCE (fTCE)"] || row["Front TCO"] || ""}</td>
+          <td>${row["fTCE thickness (nm)"] || row["Front TCO thickness"] || ""}</td>
+          <td>${row["η (%)"] || row["n tandem"] || ""}</td>
+          <td>${row["Certified (yes/no)"] || row["Certified"] || row["certified"] || ""}</td>
+          <td>${buildReferenceCell(row)}</td>
+        </tr>
+      `;
+    })
+    .join("");
 
   databaseSection.innerHTML = `
     <h2>Database</h2>
@@ -100,15 +111,33 @@ function renderDatabase(rows) {
   `;
 }
 
-
 async function loadData() {
-  tableData = await loadCSV("data/tandem.csv");
-  window.__tableData = tableData;
-  renderDatabase(tableData);
-  renderFrontTcoPlot(tableData);
-  renderIndiumPlot(tableData);
+  try {
+    tableData = await loadCSV("data/tandem.csv");
+    window.__tableData = tableData;
+    renderDatabase(tableData);
+
+    if (typeof renderFrontTcoPlot === "function") {
+      renderFrontTcoPlot(tableData);
+    }
+
+    if (typeof renderIndiumPlot === "function") {
+      renderIndiumPlot(tableData);
+    }
+  } catch (error) {
+    console.error("Failed to load data:", error);
+
+    const databaseSection = document.querySelector("#database .panel");
+    if (databaseSection) {
+      databaseSection.innerHTML = `
+        <h2>Database</h2>
+        <p>Failed to load data.</p>
+        <pre style="white-space: pre-wrap; color: #b00020;">${String(
+          error?.message || error
+        )}</pre>
+      `;
+    }
+  }
 }
 
-loadData().catch((error) => {
-  console.error("Failed to load data:", error);
-});
+loadData();
