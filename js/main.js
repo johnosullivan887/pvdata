@@ -80,6 +80,7 @@ async function loadData() {
   window.__tableData = tableData;
   renderDatabase(tableData);
   renderFrontTcoPlot(tableData);
+  renderIndiumPlot(tableData);
 }
 
 loadData().catch((error) => {
