@@ -12,3 +12,23 @@ navButtons.forEach((button) => {
     });
   });
 });
+
+async function loadData() {
+  const response = await fetch("data/tandem.csv");
+  const text = await response.text();
+  const lines = text.trim().split("\n");
+
+  const dataRows = lines.length - 1;
+
+  const home = document.querySelector("#home .hero-text p");
+  if (home) {
+    home.insertAdjacentHTML(
+      "afterend",
+      `<p><strong>Loaded ${dataRows} data rows from tandem.csv.</strong></p>`
+    );
+  }
+}
+
+loadData().catch((error) => {
+  console.error("Failed to load data:", error);
+});
