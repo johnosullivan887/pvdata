@@ -221,3 +221,17 @@ body {
 .data-table th {
   background: #f3f6fb;
 }
+
+.figure-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  user-select: none;
+}
