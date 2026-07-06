@@ -1,12 +1,520 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>My First Site</title>
-  </head>
-  <body>
-    <h1>Hello, world</h1>
-    <p>This is my first GitHub Pages site.</p>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PV Data | Tandem Front TCO Plot</title>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --panel: #f9fafb;
+      --accent: #0f172a;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 24px 20px 18px;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      margin: 18px 0 18px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel);
+    }
+
+    .toolbar input[type="file"] {
+      width: 100%;
+      max-width: 430px;
+    }
+
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .toolbar button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--accent);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .toolbar button:hover { background: #f3f4f6; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: white;
+      overflow: hidden;
+    }
+
+    .card h2 {
+      margin: 0;
+      padding: 14px 16px 10px;
+      font-size: 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fcfcfd;
+    }
+
+    .card .body {
+      padding: 14px 16px 16px;
+    }
+
+    .stats {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+    }
+
+    .stat .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .stat .small {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .legend-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.25);
+      flex: 0 0 auto;
+    }
+
+    #chart {
+      width: 100%;
+      min-height: 680px;
+    }
+
+    .note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .error {
+      color: #b91c1c;
+      font-size: 14px;
+      margin-top: 12px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr; }
+      .toolbar label { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>PV Data: Tandem Solar Cells</h1>
+      <p class="subtitle">
+        Publication date versus power conversion efficiency for perovskite-silicon tandem solar cells,
+        filtered to certified records and grouped by front TCO type.
+      </p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="toolbar">
+      <input id="fileInput" type="file" accept=".csv,.json,.xlsx,.xls" />
+      <label><input id="certifiedOnly" type="checkbox" checked /> Certified only</label>
+      <button id="loadSample">Load sample data</button>
+    </div>
+
+    <div class="grid">
+      <aside class="card">
+        <h2>Summary</h2>
+        <div class="body stats">
+          <div class="stat">
+            <div class="label">Records plotted</div>
+            <div class="value" id="countRecords">0</div>
+            <div class="small" id="countNote">No data loaded</div>
+          </div>
+          <div class="stat">
+            <div class="label">Date range</div>
+            <div class="value" id="dateRange">—</div>
+            <div class="small">Publication date window</div>
+          </div>
+          <div class="stat">
+            <div class="label">Efficiency range</div>
+            <div class="value" id="effRange">—</div>
+            <div class="small">Power conversion efficiency (%)</div>
+          </div>
+          <div>
+            <div class="label" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Legend</div>
+            <div class="legend-list" id="legendList"></div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="card">
+        <h2>Plot</h2>
+        <div class="body">
+          <div id="chart"></div>
+          <div class="note">
+            Expected columns: <code>Publishing date</code>, <code>n tandem</code>, <code>Front TCO</code>, <code>certified</code>.
+            Optional date range and category styling can be adjusted in the script.
+          </div>
+          <div class="error" id="errorBox" hidden></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const COLORS = {
+      ITO:        { marker: 'circle',   fill: 'rgb(250,208,189)', line: '#FDB7BC' },
+      IZO:        { marker: 'diamond',   fill: 'rgb(132,147,172)', line: '#0A285C' },
+      'Doped-InOx': { marker: 'square',  fill: 'rgb(157,181,170)', line: '#3C6D56' },
+      'In-free':  { marker: 'triangle-up', fill: 'rgb(210,147,67)', line: '#D29343' },
+      Other:      { marker: 'triangle-down', fill: 'rgb(171,110,181)', line: '#011959' },
+    };
+
+    const XMIN = '2015-07-07';
+    const XMAX = '2025-12-12';
+    const YMIN = 15;
+    const YMAX = 36;
+
+    const chartEl = document.getElementById('chart');
+    const errorBox = document.getElementById('errorBox');
+    const fileInput = document.getElementById('fileInput');
+    const certifiedOnlyEl = document.getElementById('certifiedOnly');
+    const loadSampleBtn = document.getElementById('loadSample');
+    const legendList = document.getElementById('legendList');
+
+    function showError(message) {
+      errorBox.hidden = false;
+      errorBox.textContent = message;
+    }
+
+    function clearError() {
+      errorBox.hidden = true;
+      errorBox.textContent = '';
+    }
+
+    function normalizeRow(row) {
+      const get = (keys) => {
+        for (const k of keys) {
+          if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '') return row[k];
+        }
+        return null;
+      };
+
+      return {
+        publishingDate: get(['Publishing date', 'publishing date', 'date', 'Publication date']),
+        efficiency: get(['n tandem', 'efficiency', 'PCE', 'power conversion efficiency']),
+        frontTCO: get(['Front TCO', 'front TCO', 'tco', 'FrontTCO']),
+        certified: get(['certified', 'Certified'])
+      };
+    }
+
+    function parseDate(v) {
+      if (!v) return null;
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function parseNumber(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function isCertified(v) {
+      return String(v ?? '').trim().toLowerCase() === 'yes';
+    }
+
+    function formatDate(d) {
+      return new Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short', day: '2-digit' }).format(d);
+    }
+
+    function buildLegend(categories) {
+      legendList.innerHTML = '';
+      categories.forEach(cat => {
+        const def = COLORS[cat] || COLORS.Other;
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `<span class="swatch" style="background:${def.fill};border-color:${def.line}"></span><span>${cat}</span>`;
+        legendList.appendChild(item);
+      });
+    }
+
+    function updateStats(rows) {
+      document.getElementById('countRecords').textContent = rows.length.toString();
+
+      if (!rows.length) {
+        document.getElementById('countNote').textContent = 'No data loaded';
+        document.getElementById('dateRange').textContent = '—';
+        document.getElementById('effRange').textContent = '—';
+        return;
+      }
+
+      const dates = rows.map(r => r.publishingDate).filter(Boolean).sort((a, b) => a - b);
+      const effs = rows.map(r => r.efficiency).filter(v => v !== null);
+
+      document.getElementById('countNote').textContent = `${rows.length} points after filtering`;
+      document.getElementById('dateRange').textContent = dates.length ? `${formatDate(dates[0])} – ${formatDate(dates[dates.length - 1])}` : '—';
+      document.getElementById('effRange').textContent = effs.length ? `${Math.min(...effs).toFixed(1)} – ${Math.max(...effs).toFixed(1)} %` : '—';
+    }
+
+    function plotRows(rawRows) {
+      clearError();
+
+      const rows = rawRows
+        .map(normalizeRow)
+        .map(r => ({
+          publishingDate: parseDate(r.publishingDate),
+          efficiency: parseNumber(r.efficiency),
+          frontTCO: String(r.frontTCO ?? '').trim(),
+          certified: r.certified
+        }))
+        .filter(r => r.publishingDate && r.efficiency !== null && r.frontTCO);
+
+      const filtered = certifiedOnlyEl.checked
+        ? rows.filter(r => isCertified(r.certified))
+        : rows;
+
+      if (!filtered.length) {
+        updateStats([]);
+        Plotly.newPlot(chartEl, [], layout(), { responsive: true, displayModeBar: true });
+        showError('No data to plot after filtering. Check the column names and the certified values.');
+        return;
+      }
+
+      const categories = [...new Set(filtered.map(r => r.frontTCO))];
+      const traces = categories.map(cat => {
+        const def = COLORS[cat] || COLORS.Other;
+        const group = filtered.filter(r => r.frontTCO === cat);
+        return {
+          type: 'scatter',
+          mode: 'markers',
+          name: cat,
+          x: group.map(r => r.publishingDate),
+          y: group.map(r => r.efficiency),
+          marker: {
+            symbol: def.marker,
+            size: 12,
+            color: def.fill,
+            line: { color: def.line, width: 1 }
+          },
+          hovertemplate:
+            '<b>%{x|%Y-%m-%d}</b><br>' +
+            'Efficiency: %{y:.2f}%<br>' +
+            'Front TCO: ' + cat + '<extra></extra>'
+        };
+      });
+
+      buildLegend(categories.length ? categories : ['Other']);
+      updateStats(filtered);
+
+      Plotly.newPlot(chartEl, traces, layout(), { responsive: true, displayModeBar: true });
+    }
+
+    function layout() {
+      return {
+        margin: { l: 60, r: 20, t: 10, b: 70 },
+        paper_bgcolor: '#ffffff',
+        plot_bgcolor: '#ffffff',
+        xaxis: {
+          title: 'Publication date',
+          range: [XMIN, XMAX],
+          dtick: 'M12',
+          tickformat: '%Y',
+          ticks: 'outside',
+          showline: true,
+          linecolor: '#111827',
+          mirror: false,
+          minor: { ticks: 'outside', showgrid: false }
+        },
+        yaxis: {
+          title: 'Power conversion efficiency (%)',
+          range: [YMIN, YMAX],
+          dtick: 5,
+          ticks: 'outside',
+          showline: true,
+          linecolor: '#111827',
+          minor: { ticks: 'outside', showgrid: false }
+        },
+        legend: {
+          orientation: 'v',
+          x: 0.02,
+          y: 0.98,
+          bgcolor: 'rgba(255,255,255,0.75)',
+          bordercolor: 'rgba(0,0,0,0)'
+        }
+      };
+    }
+
+    async function loadCsvOrJsonFile(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const text = await file.text();
+      if (ext === 'json') {
+        const data = JSON.parse(text);
+        return Array.isArray(data) ? data : (data.rows || data.data || []);
+      }
+      if (ext === 'csv') {
+        return parseCSV(text);
+      }
+      throw new Error('Unsupported file type. Use CSV or JSON for this page.');
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      if (!lines.length) return [];
+      const headers = splitCSVLine(lines[0]);
+      return lines.slice(1).map(line => {
+        const vals = splitCSVLine(line);
+        const row = {};
+        headers.forEach((h, i) => row[h] = vals[i] ?? '');
+        return row;
+      });
+    }
+
+    function splitCSVLine(line) {
+      const out = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        const next = line[i + 1];
+        if (ch === '"' && inQuotes && next === '"') {
+          cur += '"';
+          i++;
+        } else if (ch === '"') {
+          inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          out.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map(s => s.trim());
+    }
+
+    // Sample data so the page works immediately.
+    const SAMPLE_ROWS = [
+      { 'Publishing date': '2018-07-15', 'n tandem': 24.6, 'Front TCO': 'ITO', 'certified': 'yes' },
+      { 'Publishing date': '2019-10-02', 'n tandem': 26.1, 'Front TCO': 'IZO', 'certified': 'yes' },
+      { 'Publishing date': '2021-03-18', 'n tandem': 28.8, 'Front TCO': 'Doped-InOx', 'certified': 'yes' },
+      { 'Publishing date': '2022-11-04', 'n tandem': 30.4, 'Front TCO': 'In-free', 'certified': 'yes' },
+      { 'Publishing date': '2023-08-21', 'n tandem': 31.7, 'Front TCO': 'ITO', 'certified': 'yes' },
+      { 'Publishing date': '2024-05-13', 'n tandem': 33.2, 'Front TCO': 'IZO', 'certified': 'yes' },
+      { 'Publishing date': '2024-10-20', 'n tandem': 34.4, 'Front TCO': 'Doped-InOx', 'certified': 'yes' },
+      { 'Publishing date': '2025-02-14', 'n tandem': 35.1, 'Front TCO': 'In-free', 'certified': 'yes' }
+    ];
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const rows = await loadCsvOrJsonFile(file);
+        plotRows(rows);
+      } catch (err) {
+        showError(String(err.message || err));
+      }
+    });
+
+    certifiedOnlyEl.addEventListener('change', () => {
+      plotRows(window.__rows || SAMPLE_ROWS);
+    });
+
+    loadSampleBtn.addEventListener('click', () => {
+      window.__rows = SAMPLE_ROWS;
+      plotRows(SAMPLE_ROWS);
+    });
+
+    // Initial render
+    window.__rows = SAMPLE_ROWS;
+    plotRows(SAMPLE_ROWS);
+  </script>
+</body>
 </html>
