@@ -15,19 +15,7 @@ navButtons.forEach((button) => {
   });
 });
 
-function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const headers = lines[0].split(",");
 
-  return lines.slice(1).map((line) => {
-    const values = line.split(",");
-    const row = {};
-    headers.forEach((header, i) => {
-      row[header.trim()] = (values[i] || "").trim();
-    });
-    return row;
-  });
-}
 
 function parseDate(value) {
   const d = new Date(value);
@@ -155,11 +143,10 @@ function renderFrontTcoPlot(rows) {
   Plotly.newPlot(plotDiv, traces, layout, { responsive: true });
 }
 
-async function loadData() {
-  const response = await fetch("data/tandem.csv");
-  const text = await response.text();
-  tableData = parseCSV(text);
+let tableData = [];
 
+async function loadData() {
+  tableData = await loadCSV("data/tandem.csv");
   renderDatabase(tableData);
   renderFrontTcoPlot(tableData);
 }
