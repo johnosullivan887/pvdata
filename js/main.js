@@ -1,6 +1,8 @@
 const navButtons = document.querySelectorAll(".nav-btn");
 const views = document.querySelectorAll(".view");
 
+let tableData = [];
+
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     navButtons.forEach((b) => b.classList.remove("active"));
@@ -60,8 +62,6 @@ function renderDatabase(rows) {
     </table>
   `;
 }
-
-let tableData = [];
 
 async function loadData() {
   tableData = await loadCSV("data/tandem.csv");
