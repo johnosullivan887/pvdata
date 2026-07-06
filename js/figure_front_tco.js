@@ -12,15 +12,16 @@ function renderFrontTcoPlot(rows) {
     .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
 
   const certifiedOnly =
-      document.getElementById("certified-only")?.checked ?? true;
-  
+    document.getElementById("certified-only")?.checked ?? true;
+
   const plotRows = certifiedOnly
-      ? cleanRows.filter((row) => row.certified === "yes")
-      : cleanRows;
+    ? cleanRows.filter((row) => row.certified === "yes")
+    : cleanRows;
+
   console.log("Total rows:", rows.length);
   console.log("Valid rows:", cleanRows.length);
   console.log("Plotted rows:", plotRows.length);
-  
+
   const categories = [...new Set(plotRows.map((row) => row.frontTCO))].sort();
 
   const markerSymbols = [
@@ -88,25 +89,6 @@ function renderFrontTcoPlot(rows) {
         "<extra></extra>"
     };
   });
-    return {
-      type: "scatter",
-      mode: "markers",
-      name: cat,
-      x: group.map((row) => row.date),
-      y: group.map((row) => row.efficiency),
-      marker: {
-        symbol: style.marker,
-        size: 11,
-        color: style.color,
-        line: { color: "#011959", width: 1 }
-      },
-      hovertemplate:
-        "<b>%{x|%Y-%m-%d}</b><br>" +
-        "Efficiency: %{y:.2f}%<br>" +
-        "Front TCO: " + cat +
-        "<extra></extra>"
-    };
-  });
 
   const layout = {
     margin: { l: 65, r: 20, t: 20, b: 60 },
@@ -138,7 +120,7 @@ function renderFrontTcoPlot(rows) {
 }
 
 document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "certified-only" && window.__tableData)
+  if (event.target && event.target.id === "certified-only" && window.__tableData) {
     renderFrontTcoPlot(window.__tableData);
   }
 });
