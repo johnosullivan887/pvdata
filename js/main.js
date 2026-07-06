@@ -77,6 +77,7 @@ function renderDatabase(rows) {
 
 async function loadData() {
   tableData = await loadCSV("data/tandem.csv");
+  window.__tableData = tableData;
   renderDatabase(tableData);
   renderFrontTcoPlot(tableData);
 }
