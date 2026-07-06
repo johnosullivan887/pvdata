@@ -7,7 +7,7 @@ function renderFrontTcoPlot(rows) {
       date: parseDate(row["Publishing date"]),
       efficiency: parseNumber(row["n tandem"]),
       frontTCO: (row["Front TCO"] || "").trim(),
-      certified: (row["certified"] || "").trim().toLowerCase()
+      certified: (row["Certified"] || "").trim().toLowerCase()
     }))
     .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
 
