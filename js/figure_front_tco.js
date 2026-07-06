@@ -2,6 +2,10 @@ function renderFrontTcoPlot(rows) {
   const plotDiv = document.getElementById("front-tco-plot");
   if (!plotDiv) return;
 
+  // Force a wide rectangular plot area
+  plotDiv.style.width = "100%";
+  plotDiv.style.height = "650px";
+
   const cleanRows = rows
     .map((row) => ({
       date: parseDate(row["Publishing date"]),
@@ -18,12 +22,14 @@ function renderFrontTcoPlot(rows) {
     ? cleanRows.filter((row) => row.certified === "yes")
     : cleanRows;
 
-  console.log("Total rows:", rows.length);
-  console.log("Valid rows:", cleanRows.length);
-  console.log("Plotted rows:", plotRows.length);
+  // Keep points in chronological order
+  plotRows.sort((a, b) => a.date - b.date);
 
-  const categories = [...new Set(plotRows.map((row) => row.frontTCO))].sort();
+  // Raw categories, each gets its own style
+  const categories = [...new Set(plotRows.map((row) => row.frontTCO))]
+    .sort((a, b) => a.localeCompare(b));
 
+  // Distinct marker shapes
   const markerSymbols = [
     "circle",
     "diamond",
@@ -32,30 +38,41 @@ function renderFrontTcoPlot(rows) {
     "triangle-down",
     "cross",
     "x",
-    "star",
+    "pentagon",
     "hexagon",
+    "star",
     "hourglass",
     "bowtie",
     "triangle-left",
-    "triangle-right",
-    "pentagon"
+    "triangle-right"
   ];
 
+  // Distinct colours chosen to stay visually separated
   const markerColors = [
-    "#011959",
-    "#0A285C",
-    "#103F60",
-    "#1C5A62",
-    "#3C6D56",
-    "#687B3E",
-    "#9D892B",
-    "#D29343",
-    "#F8A17B",
-    "#FDB7BC",
-    "#FACCFA",
-    "#6A4C93",
-    "#2A9D8F",
-    "#E76F51"
+    "#1f77b4",
+    "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+    "#9467bd",
+    "#8c564b",
+    "#e377c2",
+    "#7f7f7f",
+    "#bcbd22",
+    "#17becf",
+    "#4c78a8",
+    "#f58518",
+    "#54a24b",
+    "#e45756",
+    "#72b7b2",
+    "#b279a2",
+    "#ff9da6",
+    "#9d755d",
+    "#bab0ab",
+    "#5f9ed1",
+    "#8dd3c7",
+    "#fb8072",
+    "#80b1d3",
+    "#fdb462"
   ];
 
   const styleMap = {};
@@ -80,7 +97,8 @@ function renderFrontTcoPlot(rows) {
         symbol: style.marker,
         size: 11,
         color: style.color,
-        line: { color: "#011959", width: 1 }
+        opacity: 0.78,
+        line: { color: "#1a1a1a", width: 0.8 }
       },
       hovertemplate:
         "<b>%{x|%Y-%m-%d}</b><br>" +
@@ -91,15 +109,23 @@ function renderFrontTcoPlot(rows) {
   });
 
   const layout = {
-    margin: { l: 65, r: 20, t: 20, b: 60 },
+    autosize: true,
+    height: 650,
+    margin: { l: 65, r: 20, t: 20, b: 55 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
+    font: {
+      family: "Arial, sans-serif",
+      size: 13,
+      color: "#111111"
+    },
     xaxis: {
       title: "Publication date",
       tickformat: "%Y",
       dtick: "M12",
       showline: true,
-      linecolor: "#10233f",
+      linecolor: "#222222",
+      zeroline: false,
       range: [CONFIG.xMin, CONFIG.xMax]
     },
     yaxis: {
@@ -107,16 +133,23 @@ function renderFrontTcoPlot(rows) {
       range: [CONFIG.efficiency.min, CONFIG.efficiency.max],
       dtick: 5,
       showline: true,
-      linecolor: "#10233f"
+      linecolor: "#222222",
+      zeroline: false
     },
     legend: {
       orientation: "v",
       x: 0.02,
-      y: 0.98
+      y: 0.98,
+      bgcolor: "rgba(255,255,255,0.90)",
+      bordercolor: "#dddddd",
+      borderwidth: 1
     }
   };
 
-  Plotly.newPlot(plotDiv, traces, layout, { responsive: true });
+  Plotly.react(plotDiv, traces, layout, {
+    responsive: true,
+    displayModeBar: true
+  });
 }
 
 document.addEventListener("change", (event) => {
