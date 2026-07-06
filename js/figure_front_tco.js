@@ -11,12 +11,12 @@ function renderFrontTcoPlot(rows) {
     }))
     .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
 
-  const includeUncertified = document.getElementById("include-uncertified")?.checked ?? false;
+  const certifiedOnly =
+      document.getElementById("certified-only")?.checked ?? true;
   
-  const plotRows = includeUncertified
-    ? cleanRows
-    : cleanRows.filter((row) => row.certified === "yes");
-  
+  const plotRows = certifiedOnly
+      ? cleanRows.filter((row) => row.certified === "yes")
+      : cleanRows;
   console.log("Total rows:", rows.length);
   console.log("Valid rows:", cleanRows.length);
   console.log("Plotted rows:", plotRows.length);
