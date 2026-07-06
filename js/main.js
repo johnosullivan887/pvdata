@@ -16,9 +16,21 @@ navButtons.forEach((button) => {
 });
 
 
-
 function parseDate(value) {
-  const d = new Date(value);
+  if (!value) return null;
+
+  const s = String(value).trim();
+
+  // Handles DD/MM/YYYY
+  const parts = s.split("/");
+  if (parts.length === 3) {
+    const [day, month, year] = parts.map(Number);
+    const d = new Date(year, month - 1, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // Fallback for ISO dates
+  const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
 
