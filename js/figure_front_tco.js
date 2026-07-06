@@ -12,6 +12,9 @@ function renderFrontTcoPlot(rows) {
     .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
 
   const certifiedRows = cleanRows.filter((row) => row.certified === "yes");
+  console.log("Total rows:", rows.length);
+  console.log("Valid rows:", cleanRows.length);
+  console.log("Certified rows:", certifiedRows.length);
   const categories = [...new Set(certifiedRows.map((row) => row.frontTCO))];
 
   const traces = categories.map((cat) => {
