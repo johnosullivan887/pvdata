@@ -138,7 +138,7 @@ function renderFrontTcoPlot(rows) {
 }
 
 document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "include-uncertified" && window.__tableData) {
+  if (event.target && event.target.id === "certified-only" && window.__tableData)
     renderFrontTcoPlot(window.__tableData);
   }
 });
