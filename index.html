@@ -1,71 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>PV Data</title>
-
-    <link rel="stylesheet" href="style.css">
-
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PVData</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
-
 <body>
-
-<header>
-
-    <h1>PV Data</h1>
-
-    <p>
+  <header class="site-header">
+    <div class="header-left">
+      <img class="logo" src="images/pvdata-logo.png" alt="PVData logo" />
+    </div>
+    <div class="header-right">
+      <p class="site-tagline">
         An interactive database of perovskite–silicon tandem solar cells,
         electrode materials, and indium use.
-    </p>
+      </p>
+    </div>
+  </header>
 
-</header>
+  <nav class="top-nav">
+    <button class="nav-btn active" data-target="home">Home</button>
+    <button class="nav-btn" data-target="database">Database</button>
+    <button class="nav-btn" data-target="figures">Figures</button>
+    <button class="nav-btn" data-target="explore">Explore</button>
+    <button class="nav-btn" data-target="about">About</button>
+  </nav>
 
+  <main class="page">
+    <section id="home" class="view active">
+      <div class="hero-card">
+        <div class="hero-text">
+          <h1>Welcome to PVData</h1>
+          <p>
+            PVData is an open, interactive database of perovskite–silicon tandem solar cells.
+            Explore device efficiencies, materials, layer architectures, and indium use from the literature.
+          </p>
 
-<nav>
+          <div class="feature">
+            <div class="feature-icon">▮▮▮</div>
+            <div>
+              <h3>Comprehensive Database</h3>
+              <p>Curated data from the Tandem spreadsheet.</p>
+            </div>
+          </div>
 
-    <button>Home</button>
+          <div class="feature">
+            <div class="feature-icon">⌕</div>
+            <div>
+              <h3>Interactive Visualizations</h3>
+              <p>Explore trends in efficiency, materials, and indium intensity.</p>
+            </div>
+          </div>
 
-    <button>Database</button>
+          <div class="feature">
+            <div class="feature-icon">↓</div>
+            <div>
+              <h3>Open and Transparent</h3>
+              <p>Download and reuse the data for your own research.</p>
+            </div>
+          </div>
+        </div>
 
-    <button>Figures</button>
+        <div class="hero-image">
+          <div class="hero-image-frame">
+            <img src="images/pvdata-logo.png" alt="PVData logo" />
+          </div>
+        </div>
+      </div>
 
-    <button>Explore</button>
-
-    <button>About</button>
-
-</nav>
-
-
-<main>
-
-    <section>
-
-        <h2>Welcome</h2>
-
-        <p>
-
-            This website contains an interactive literature database for
-            perovskite–silicon tandem solar cells.
-
-        </p>
-
-        <p>
-
-            Use the navigation above to explore the database,
-            interactive figures,
-            and material statistics.
-
-        </p>
-
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">420+</div>
+          <div class="stat-label">Papers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">36.1%</div>
+          <div class="stat-label">Record Efficiency</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Front TCO Families</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">0.15</div>
+          <div class="stat-label">Lowest Indium Intensity</div>
+        </div>
+      </div>
     </section>
 
-</main>
+    <section id="database" class="view">
+      <div class="panel">
+        <h2>Database</h2>
+        <p>Next step: searchable table loaded from <code>data/tandem.csv</code>.</p>
+      </div>
+    </section>
 
-<script src="script.js"></script>
+    <section id="figures" class="view">
+      <div class="panel">
+        <h2>Figures</h2>
+        <p>Next step: embed the three plots here.</p>
+      </div>
+    </section>
 
+    <section id="explore" class="view">
+      <div class="panel">
+        <h2>Explore</h2>
+        <p>Next step: timeline, Pareto plot, Sankey diagram, and thickness trends.</p>
+      </div>
+    </section>
+
+    <section id="about" class="view">
+      <div class="panel">
+        <h2>About</h2>
+        <p>PVData is a literature database for tandem solar-cell materials and performance.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
