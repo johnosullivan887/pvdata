@@ -203,3 +203,21 @@ body {
 .data-table th {
   background: #f3f6fb;
 }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid #d9e2ef;
+  padding: 10px;
+  text-align: left;
+}
+
+.data-table th {
+  background: #f3f6fb;
+}
