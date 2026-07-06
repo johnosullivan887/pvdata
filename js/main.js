@@ -99,24 +99,7 @@ function renderDatabase(rows) {
     </div>
   `;
 }
-  databaseSection.innerHTML = `
-    <h2>Database</h2>
-    <p><strong>Loaded ${rows.length} rows from tandem.csv.</strong></p>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Author</th>
-          <th>Year</th>
-          <th>Efficiency</th>
-          <th>Front TCO</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${htmlRows}
-      </tbody>
-    </table>
-  `;
-}
+
 
 async function loadData() {
   tableData = await loadCSV("data/tandem.csv");
