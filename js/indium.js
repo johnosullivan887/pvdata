@@ -159,7 +159,6 @@ const PVDataIndium = (() => {
     [["IZrO/Ag", "IZrO / Ag"], indiumProfile(0.827 * 0.98, 7.14)],
     [["IZrO/SiOx/Ag", "IZrO / SiOx / Ag"], indiumProfile(0.827 * 0.98, 7.14)],
     [["IWO/Ag", "IWO / Ag"], indiumProfile(0.827 * 0.99, 7.14)],
-
     [["Ag", "Al", "Ag/Al", "Al/Ag", "Al/Ti/Ag", "Ti/Pd/Ag/Pt", "Ti/Pd/Ag", "Cr/Ag", "Cr/Pd/Ag/Ag/Al", "AZO/Ag", "AZO/Al", "No TCE"], zeroProfile()],
     [["TCO/Ag", "Not clear", "Other"], null]
   ]);
@@ -173,7 +172,6 @@ const PVDataIndium = (() => {
     [["InOx:H"], indiumProfile(0.827, 7.14)],
     [["IO:H"], indiumProfile(0.74, 7.14)],
     [["ITO/IZO", "ITO / IZO"], indiumProfile(0.74, 7.14)],
-
     [["ZTO", "None", "No layer"], zeroProfile()],
     [["nc-SiOx(n)", "nc-SiOx:H(n/p)", "TiSi2", "TiOx/TiNy", "n-n-p organic", "a*-Si:H(n)", "nc-Si:H(p)", "nc-Si:H(n)", "a-Si:H(p+)", "nc-Si:H(n/p)", "nc-Si:H(p/n)", "poly-Si(n/p)", "nc-Si(n+)", "uc-Si:H(p/n)"], zeroProfile()],
     [["Not clear", "Other"], null]
