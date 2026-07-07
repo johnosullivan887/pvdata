@@ -242,6 +242,7 @@ function rowMatchesDatabase(row, filters) {
   const haystack = [
     getValue(row, "Author"),
     getValue(row, "Publishing date", "Date", "Year"),
+    getValue(row, "Highlight"),
     getValue(row, "Si Bottom cell type", "Cell"),
     getValue(row, "Interlayer TCE", "Inter-layer", "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"),
     getValue(row, "Rear Electrode", "Rear electrode"),
@@ -316,6 +317,7 @@ function renderDatabaseTable() {
         <tr>
           <td>${escapeHtml(getValue(row, "Author"))}</td>
           <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
+          <td class="highlight-cell" title="${escapeHtml(getValue(row, "Highlight"))}">${escapeHtml(getValue(row, "Highlight"))}</td>
           <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
           <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer"))}</td>
           <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
@@ -338,6 +340,7 @@ function renderDatabaseTable() {
         <tr>
           <th data-sort="author" style="cursor:pointer;">${sortHeader("Author", "author")}</th>
           <th data-sort="date" style="cursor:pointer;">${sortHeader("Date", "date")}</th>
+          <th data-sort="Highlight" style="cursor:pointer;">${sortHeader("Highlight", "highlight")}</th>
           <th data-sort="cell" style="cursor:pointer;">${sortHeader("Si Bottom cell type", "cell")}</th>
           <th data-sort="interlayer" style="cursor:pointer;">${sortHeader("Interlayer TCE", "interlayer")}</th>
           <th data-sort="interlayer-thickness" style="cursor:pointer;">${sortHeader("IL thickness (nm)", "interlayer-thickness")}</th>
