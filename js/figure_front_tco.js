@@ -90,6 +90,11 @@ function renderFrontTcoPlot(rows) {
       name: cat,
       x: group.map((row) => row.date),
       y: group.map((row) => row.efficiency),
+      customdata: group.map((row) => [
+        getValue(row, "Author"),
+        getDatabaseYear(row),
+        getPaperUrl(row)
+      ]),
       marker: {
         symbol: style.marker,
         size: 10,
@@ -100,6 +105,8 @@ function renderFrontTcoPlot(rows) {
       hovertemplate:
         "<b>%{x|%Y-%m-%d}</b><br>" +
         "Efficiency: %{y:.2f}%<br>" +
+        "Author: %{customdata[0]}<br>" +
+        "Year: %{customdata[1]}<br>" +
         "Front TCO: " + cat +
         "<extra></extra>"
     };
@@ -154,6 +161,9 @@ function renderFrontTcoPlot(rows) {
     responsive: true,
     displayModeBar: true
   });
+
+  plotDiv.style.cursor = "pointer";
+  bindPaperOpenBehavior(plotDiv);
 }
 
 
