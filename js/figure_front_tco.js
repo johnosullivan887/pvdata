@@ -14,7 +14,23 @@ function renderFrontTcoPlot(rows) {
   plotDiv.style.height = "520px";
 
   const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
-  const materialUtilisation = Number(document.getElementById("indium-util-eff")?.value ?? 80) / 100;
+
+  const toDateString = (row) => {
+    const dateText = base.resolveField(row, ["Publishing date", "Date"]);
+    const yearText = String(base.getYear(row) ?? "").trim();
+
+    const parsed = base.parseDate(dateText);
+    if (parsed && !isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+
+    const yearMatch = yearText.match(/(19|20)\d{2}/);
+    if (yearMatch) {
+      return new Date(Number(yearMatch[0]), 0, 1).toISOString();
+    }
+
+    return null;
+  };
 
   const getRowYear = (row) => {
     const yearText = String(base.getYear(row) ?? "").trim();
@@ -30,12 +46,7 @@ function renderFrontTcoPlot(rows) {
 
   const plotRows = rows
     .map((row) => {
-      const dateText = base.resolveField(row, ["Publishing date", "Date"]);
-      const yearText = base.getYear(row);
-      const date =
-        base.parseDate(dateText) ||
-        (yearText ? new Date(Number(yearText), 0, 1) : null);
-
+      const date = toDateString(row);
       const efficiency = base.getEfficiency(row);
       const rawLabel = tax.normalizeText(
         base.resolveField(row, ["Front TCO", "Front TCE (fTCE)"])
@@ -43,6 +54,8 @@ function renderFrontTcoPlot(rows) {
       const family = tax.familyFromFront(rawLabel);
 
       if (!date || !Number.isFinite(efficiency) || !family) return null;
+
+      const yearText = base.getYear(row);
 
       return {
         date,
@@ -72,15 +85,7 @@ function renderFrontTcoPlot(rows) {
     ? plotRows.filter((row) => row.certified === "yes")
     : plotRows;
 
-  const yearMaxEl = document.getElementById("indium-year-max");
-  const maxYear = Number(yearMaxEl?.value ?? 2026);
-
-  const filteredRows = visibleRows.filter((row) => {
-    if (Number.isFinite(row.yearNum) && row.yearNum > maxYear) return false;
-    return true;
-  });
-
-  const categoryCounts = filteredRows.reduce((acc, row) => {
+  const categoryCounts = visibleRows.reduce((acc, row) => {
     acc[row.family] = (acc[row.family] || 0) + 1;
     return acc;
   }, {});
@@ -115,7 +120,7 @@ function renderFrontTcoPlot(rows) {
 
   const dataTraces = orderedFamilies.map((family) => {
     const style = tax.familyStyle(family);
-    const group = filteredRows.filter((row) => row.family === family);
+    const group = visibleRows.filter((row) => row.family === family);
 
     return {
       type: "scatter",
@@ -129,8 +134,7 @@ function renderFrontTcoPlot(rows) {
         row.year,
         row.paperUrl,
         row.family,
-        row.rawLabel,
-        Number.isFinite(row.twYr) ? row.twYr : null
+        row.rawLabel
       ]),
       marker: {
         symbol: style.symbol,
@@ -162,9 +166,10 @@ function renderFrontTcoPlot(rows) {
     },
     xaxis: {
       title: "Publication date",
+      type: "date",
       tickformat: "%Y",
       dtick: "M12",
-      range: [base.parseDate("2015-07-07"), base.parseDate("2025-12-12")],
+      range: ["2015-07-07", "2025-12-12"],
       showline: true,
       linecolor: "#666666",
       zeroline: false,
