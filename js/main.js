@@ -74,6 +74,41 @@ function formatReference(value) {
   return escapeHtml(ref);
 }
 
+function getValue(row, ...keys) {
+  for (const key of keys) {
+    const value = row[key];
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return String(value).trim();
+    }
+  }
+  return "";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatReference(value) {
+  const ref = String(value ?? "").trim();
+  if (!ref) return "";
+
+  if (/^https?:\/\//i.test(ref)) {
+    return `<a href="${escapeHtml(ref)}" target="_blank" rel="noopener noreferrer">Open</a>`;
+  }
+
+  if (/^10\.\d{4,9}\//i.test(ref)) {
+    const doiUrl = `https://doi.org/${ref}`;
+    return `<a href="${escapeHtml(doiUrl)}" target="_blank" rel="noopener noreferrer">Open</a>`;
+  }
+
+  return escapeHtml(ref);
+}
+
 function buildReferenceCell(row) {
   const ref = row["Reference"] || row["Reference link"] || row["DOI"] || "";
 
