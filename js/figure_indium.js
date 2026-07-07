@@ -5,201 +5,15 @@ function renderIndiumPlot(rows) {
   plotDiv.style.width = "100%";
   plotDiv.style.height = "540px";
 
-  const DEP_EFF = 0.8;
+  if (!window.PVDataIndium) {
+    plotDiv.innerHTML = "<p>Indium helpers are missing.</p>";
+    return;
+  }
 
-  const normalize = (value) =>
-    String(value ?? "")
-      .trim()
-      .replace(/\s+/g, " ");
-
-  const resolveField = (row, keys) => {
-    for (const key of keys) {
-      const value = row[key];
-      if (value !== undefined && value !== null && String(value).trim() !== "") {
-        return value;
-      }
-    }
-    return null;
-  };
-
-  const toNumber = (value) => {
-    if (value === null || value === undefined || value === "") return null;
-    const n = Number(String(value).replace(/,/g, "").trim());
-    return Number.isFinite(n) ? n : null;
-  };
-
-  const calcMgPerW = (thicknessNm, efficiencyPct, indiumFraction, density) => {
-    if (
-      thicknessNm === null ||
-      efficiencyPct === null ||
-      !Number.isFinite(indiumFraction) ||
-      !Number.isFinite(density) ||
-      efficiencyPct <= 0
-    ) {
-      return null;
-    }
-
-    const gramsPerW =
-      ((thicknessNm * 1e-7) / DEP_EFF) *
-      density *
-      indiumFraction *
-      1000 /
-      ((efficiencyPct / 100) * 0.1);
-
-    return Number.isFinite(gramsPerW) ? gramsPerW : null;
-  };
-
-  const FRONT_LOOKUP = {
-    ITO: [0.74, 7.14],
-    IZO: [0.827 * 0.9, 7.14],
-    "IO:H/ITO": [0.827 * 0.9 + 0.74 * 0.1, 7.14],
-    IWO: [0.827 * 0.99, 7.14],
-    IZrO: [0.827 * 0.98, 7.14],
-    AgNWs: [0.0, 0.0],
-    AZO: [0.0, 0.0],
-    "MoOx/Au/MoOx": [0.0, 0.0],
-    Other: [0.0, 0.0]
-  };
-
-  const REAR_LOOKUP = {
-    "InOx:H/Ag": [0.827, 7.14],
-    "IZO/Ag": [0.827 * 0.9, 7.14],
-    "IZO/MgF2/Ag": [0.827 * 0.9, 7.14],
-    "Doped-InOx:H/Ag/SiOx/Ag": [0.74, 7.14],
-    "ITO/Ag": [0.74, 7.14],
-    "ITO/Ag/Al": [0.74, 7.14],
-    "ITO/Al/Ag": [0.74, 7.14],
-    "ITO/Au": [0.74, 7.14],
-    "ITO/SiO2/Ag": [0.74, 7.14],
-    "ITO/Silica/Ag": [0.74, 7.14],
-    "ITO/SiO2-NP/Ag": [0.74, 7.14],
-    "ITO/MgF2/Ni/Al": [0.74, 7.14],
-    "ITO/MgFx/Ag": [0.74, 7.14],
-    "ITO/meso-Al2O3/Ag": [0.74, 7.14],
-    "InOx/Ag": [0.827, 7.14],
-    "Doped InOx/Ag/SiO2/Ag": [0.74, 7.14],
-    "Doped InOx/Ag": [0.74, 7.14],
-    "IZrO/Ag": [0.827 * 0.98, 7.14],
-    "IZrO/SiOx/Ag": [0.827 * 0.98, 7.14],
-    "IWO/Ag": [0.827 * 0.99, 7.14],
-    Ag: [0.0, 0.0],
-    Al: [0.0, 0.0],
-    "Ag/Al": [0.0, 0.0],
-    "Al/Ag": [0.0, 0.0],
-    "Al/Ti/Ag": [0.0, 0.0],
-    "Ti/Pd/Ag/Pt": [0.0, 0.0],
-    "Ti/Pd/Ag": [0.0, 0.0],
-    "Cr/Ag": [0.0, 0.0],
-    "Cr/Pd/Ag/Ag/Al": [0.0, 0.0],
-    "TCO/Ag": [0.0, 0.0],
-    Other: [0.0, 0.0]
-  };
-
-  const INTER_LOOKUP = {
-    IWO: [0.827 * 0.99, 7.14],
-    ITO: [0.74, 7.14],
-    IZO: [0.827 * 0.9, 7.14],
-    InOx: [0.827, 7.14],
-    "Doped InOx": [0.74, 7.14],
-    "Doped-InOx:H": [0.74, 7.14],
-    "InOx:H": [0.827, 7.14],
-    ZTO: [0.0, 0.0],
-    None: [0.0, 0.0],
-    "No layer": [0.0, 0.0],
-    Other: [0.0, 0.0]
-  };
-
-  const classifyCellType = (row) => {
-    const raw = normalize(resolveField(row, ["Cell", "Si Bottom cell type"])).toLowerCase();
-
-    if (raw.includes("shj") || raw.includes("heterojunction")) return "SHJ";
-    if (raw.includes("topcon") || raw.includes("polo")) return "TOPCon/POLO";
-    if (raw.includes("perc") || raw.includes("al-bsf") || raw.includes("bsf")) return "Al-BSF/PERC";
-    return "Other";
-  };
-
-  const getActiveArea = (row) =>
-    toNumber(
-      resolveField(row, [
-        "Cell active area",
-        "Active Area (cm2)",
-        "Active area",
-        "Area"
-      ])
-    );
-
-  const getEfficiency = (row) =>
-    toNumber(resolveField(row, ["n tandem", "η (%)", "Efficiency"]));
-
-  const getFrontMgW = (row, efficiencyPct) => {
-    const tco = normalize(resolveField(row, ["Front TCO", "Front TCE (fTCE)"]));
-    const thickness = toNumber(
-      resolveField(row, [
-        "Total front TCO thickness",
-        "Front TCO thickness",
-        "fTCE thickness (nm)",
-        "Front TCO thickness (nm)"
-      ])
-    );
-
-    const lookup = FRONT_LOOKUP[tco] || FRONT_LOOKUP.Other;
-    return calcMgPerW(thickness, efficiencyPct, lookup[0], lookup[1]);
-  };
-
-  const getRearMgW = (row, efficiencyPct) => {
-    const tco = normalize(resolveField(row, ["Rear electrode", "Rear Electrode"]));
-    const thickness = toNumber(
-      resolveField(row, [
-        "Rear TCO thickness",
-        "Rear TCE thickness (nm)",
-        "Rear TCO thickness (nm)"
-      ])
-    );
-
-    const lookup = REAR_LOOKUP[tco] || REAR_LOOKUP.Other;
-    return calcMgPerW(thickness, efficiencyPct, lookup[0], lookup[1]);
-  };
-
-  const getInterMgW = (row, efficiencyPct) => {
-    const tco = normalize(resolveField(row, ["Inter-layer", "Interlayer TCE"]));
-    const thickness = toNumber(
-      resolveField(row, [
-        "Inter-layer thickness",
-        "IL thickness (nm)",
-        "Interlayer thickness",
-        "Inter-layer thicknes"
-      ])
-    );
-
-    const lookup = INTER_LOOKUP[tco] || INTER_LOOKUP.Other;
-    return calcMgPerW(thickness, efficiencyPct, lookup[0], lookup[1]);
-  };
-
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? true;
+  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
 
   const plotRows = rows
-    .map((row) => {
-      const efficiency = getEfficiency(row);
-      const activeArea = getActiveArea(row);
-
-      if (!Number.isFinite(efficiency)) return null;
-
-      const front = getFrontMgW(row, efficiency);
-      const rear = getRearMgW(row, efficiency);
-      const inter = getInterMgW(row, efficiency);
-
-      const parts = [front, rear, inter].filter((v) => Number.isFinite(v));
-      const totalMgW = parts.length ? parts.reduce((a, b) => a + b, 0) : null;
-
-      return {
-        date: parseDate(resolveField(row, ["Publishing date", "Date"])),
-        efficiency,
-        activeArea,
-        cellType: classifyCellType(row),
-        totalMgW,
-        certified: normalize(resolveField(row, ["Certified", "certified"])).toLowerCase()
-      };
-    })
+    .map((row) => PVDataIndium.computeRow(row))
     .filter((row) => row && row.totalMgW !== null && Number.isFinite(row.efficiency));
 
   const visibleRows = certifiedOnly
@@ -207,11 +21,19 @@ function renderIndiumPlot(rows) {
     : plotRows;
 
   const cellOrder = ["SHJ", "TOPCon/POLO", "Al-BSF/PERC", "Other"];
+
   const cellSymbols = {
     SHJ: "diamond",
     "TOPCon/POLO": "circle",
     "Al-BSF/PERC": "triangle-up",
     Other: "star"
+  };
+
+  const cellColors = {
+    SHJ: "#1f77b4",
+    "TOPCon/POLO": "#ff7f0e",
+    "Al-BSF/PERC": "#2ca02c",
+    Other: "#7f7f7f"
   };
 
   const activeAreas = visibleRows
@@ -229,9 +51,6 @@ function renderIndiumPlot(rows) {
   const usableTicks = tickCandidates.filter(
     (v) => v >= Math.pow(10, minLog) && v <= Math.pow(10, maxLog)
   );
-
-  const colorTickVals = usableTicks.map((v) => Math.log10(v));
-  const colorTickText = usableTicks.map((v) => String(v));
 
   const colorscale = [
     [0.0, "#011959"],
@@ -256,22 +75,12 @@ function renderIndiumPlot(rows) {
         x: group.map((row) => row.totalMgW),
         y: group.map((row) => row.efficiency),
         customdata: group.map((row) => [
-          getValue(row, "Author"),
-          getDatabaseYear(row),
-          getPaperUrl(row)
+          row.author,
+          row.year,
+          row.paperUrl,
+          row.cellType,
+          Number.isFinite(row.activeArea) ? row.activeArea : null
         ]),
-        text: group.map((row) => {
-          const area = Number.isFinite(row.activeArea)
-            ? row.activeArea.toFixed(3)
-            : "n/a";
-          return `Cell type: ${row.cellType}<br>Active area: ${area} cm²<br>Indium: ${row.totalMgW.toFixed(3)} mg/W`;
-        }),
-        hovertemplate:
-          "<b>%{x:.3f} mg/W</b><br>" +
-          "Efficiency: %{y:.2f}%<br>" +
-          "Author: %{customdata[0]}<br>" +
-          "Year: %{customdata[1]}<br>" +
-          "%{text}<extra></extra>",
         marker: {
           symbol: cellSymbols[cell],
           size: 12,
@@ -279,7 +88,15 @@ function renderIndiumPlot(rows) {
           color: group.map((row) => Math.log10(Math.max(row.activeArea || 0.01, 0.01))),
           coloraxis: "coloraxis",
           line: { color: "#1a1a1a", width: 0.8 }
-        }
+        },
+        hovertemplate:
+          "<b>%{x:.3f} mg W⁻¹</b><br>" +
+          "Efficiency: %{y:.2f}%<br>" +
+          "Author: %{customdata[0]}<br>" +
+          "Year: %{customdata[1]}<br>" +
+          "Cell type: %{customdata[3]}<br>" +
+          "Active area: %{customdata[4]:.3f} cm²<br>" +
+          "<extra></extra>"
       };
     });
 
@@ -296,7 +113,7 @@ function renderIndiumPlot(rows) {
     },
     xaxis: {
       title: "Indium content (mg W⁻¹)",
-      range: [CONFIG.indium.min, CONFIG.indium.max]
+      range: [CONFIG?.indium?.min ?? 0, CONFIG?.indium?.max ?? 11],
       showline: true,
       linecolor: "#222222",
       zeroline: false,
@@ -322,8 +139,8 @@ function renderIndiumPlot(rows) {
       colorbar: {
         title: "Cell active area (cm²)",
         tickmode: "array",
-        tickvals: colorTickVals,
-        ticktext: colorTickText,
+        tickvals: usableTicks.map((v) => Math.log10(v)),
+        ticktext: usableTicks.map((v) => String(v)),
         thickness: 18,
         outlinewidth: 0.8,
         outlinecolor: "#222222"
@@ -421,5 +238,17 @@ function renderIndiumPlot(rows) {
   });
 
   plotDiv.style.cursor = "pointer";
-  bindPaperOpenBehavior(plotDiv);
+
+  if (!plotDiv.dataset.paperClickBound) {
+    plotDiv.dataset.paperClickBound = "true";
+
+    plotDiv.on("plotly_click", (eventData) => {
+      const point = eventData?.points?.[0];
+      const url = point?.customdata?.[2];
+
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    });
+  }
 }
