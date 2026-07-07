@@ -116,14 +116,7 @@ async function loadData() {
     tableData = await loadCSV("data/tandem.csv");
     window.__tableData = tableData;
     renderDatabase(tableData);
-
-    if (typeof renderFrontTcoPlot === "function") {
-      renderFrontTcoPlot(tableData);
-    }
-
-    if (typeof renderIndiumPlot === "function") {
-      renderIndiumPlot(tableData);
-    }
+    renderAllFigures();
   } catch (error) {
     console.error("Failed to load data:", error);
 
@@ -139,5 +132,21 @@ async function loadData() {
     }
   }
 }
+
+function renderAllFigures() {
+  if (typeof renderFrontTcoPlot === "function") {
+    renderFrontTcoPlot(tableData);
+  }
+
+  if (typeof renderIndiumPlot === "function") {
+    renderIndiumPlot(tableData);
+  }
+}
+
+document.addEventListener("change", (event) => {
+  if (event.target && event.target.id === "certified-only") {
+    renderAllFigures();
+  }
+});
 
 loadData();
