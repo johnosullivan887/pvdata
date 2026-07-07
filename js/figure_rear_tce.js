@@ -15,27 +15,34 @@ function renderRearTcePlot(rows) {
 
   const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
 
-  const plotRows = rows
-    .map((row) => {
-      const date = base.parseDate(base.resolveField(row, ["Publishing date", "Date"]));
-      const efficiency = base.getEfficiency(row);
-      const rawLabel = tax.normalizeText(base.resolveField(row, ["Rear electrode", "Rear Electrode"]));
-      const family = tax.familyFromRear(rawLabel);
 
-      if (!date || efficiency === null || !family) return null;
+    const plotRows = rows
+      .map((row) => {
+    const dateText = base.resolveField(row, ["Publishing date", "Date"]);
+    const yearText = base.getYear(row);
+    const date =
+      base.parseDate(dateText) ||
+      (yearText ? new Date(Number(yearText), 0, 1) : null);
 
-      return {
-        date,
-        efficiency,
-        rawLabel,
-        family,
-        certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
-        author: base.getAuthor(row),
-        year: base.getYear(row),
-        paperUrl: base.getPaperUrl(row)
-      };
-    })
-    .filter(Boolean);
+    const efficiency = base.getEfficiency(row);
+    const rawLabel = tax.normalizeText(base.resolveField(row, ["Rear electrode", "Rear Electrode"]));
+    const family = tax.familyFrom...(rawLabel);
+
+    if (!Number.isFinite(efficiency) || !family) return null;
+
+    return {
+      date,
+      efficiency,
+      rawLabel,
+      family,
+      certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
+      author: base.getAuthor(row),
+      year: yearText,
+      paperUrl: base.getPaperUrl(row)
+    };
+  })
+  .filter(Boolean);
+ 
 
   const familyCounts = plotRows.reduce((acc, row) => {
     acc[row.family] = (acc[row.family] || 0) + 1;
