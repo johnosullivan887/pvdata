@@ -266,7 +266,7 @@ function renderDatabaseTable() {
           <th>IL thickness (nm)</th>
           <th>Rear Electrode</th>
           <th>Rear TCE thickness (nm)</th>
-          <th>Active Area (cm2)</th>
+          <th>Active Area (cm<sup>2</sup>)</th>
           <th>Front TCE (fTCE)</th>
           <th>fTCE thickness (nm)</th>
           <th>η (%)</th>
