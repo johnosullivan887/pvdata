@@ -5,37 +5,53 @@ function renderFrontTcoPlot(rows) {
   plotDiv.style.width = "100%";
   plotDiv.style.height = "520px";
 
+  const base = window.TceMaterialPlotBase;
+  if (!base) {
+    plotDiv.innerHTML = "<p>TCE plot helpers are missing.</p>";
+    return;
+  }
+
+  const normalizeCategory = (value) => {
+    const text = base.normalizeText(value);
+    if (!text) return "";
+
+    const lower = text.toLowerCase();
+    if (lower === "not clear") return "Not clear";
+    if (lower === "none") return "None";
+    if (lower === "other") return "Other";
+    if (lower === "in-free" || lower === "in free") return "In-Free";
+
+    return text;
+  };
+
+  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
+
   const cleanRows = rows
     .map((row) => ({
-      date: parseDate(row["Publishing date"]),
-      efficiency: parseNumber(row["n tandem"]),
-      frontTCO: (row["Front TCO"] || "").trim(),
-      certified: (row["Certified"] || "").trim().toLowerCase(),
-      author: getValue(row, "Author"),
-      year: getDatabaseYear(row),
-      paperUrl: getPaperUrl(row)
+      date: base.parseDate(base.resolveField(row, ["Publishing date", "Date"])),
+      efficiency: base.getEfficiency(row),
+      frontTCO: normalizeCategory(base.resolveField(row, ["Front TCO", "Front TCE (fTCE)"])),
+      certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
+      author: base.getAuthor(row),
+      year: base.getYear(row),
+      paperUrl: base.getPaperUrl(row)
     }))
     .filter((row) => row.date && row.efficiency !== null && row.frontTCO);
-
-  const certifiedOnly =
-    document.getElementById("certified-only")?.checked ?? false;
 
   const plotRows = certifiedOnly
     ? cleanRows.filter((row) => row.certified === "yes")
     : cleanRows;
 
-  plotRows.sort((a, b) => a.date - b.date);
+  const categoryCounts = cleanRows.reduce((acc, row) => {
+    acc[row.frontTCO] = (acc[row.frontTCO] || 0) + 1;
+    return acc;
+  }, {});
 
-const categoryCounts = plotRows.reduce((acc, row) => {
-  acc[row.frontTCO] = (acc[row.frontTCO] || 0) + 1;
-  return acc;
-}, {});
+  const allCategories = Object.keys(categoryCounts).sort((a, b) => {
+    const diff = categoryCounts[b] - categoryCounts[a];
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
 
-const allCategories = Object.keys(categoryCounts).sort((a, b) => {
-  const diff = categoryCounts[b] - categoryCounts[a];
-  return diff !== 0 ? diff : a.localeCompare(b);
-});
-  
   const markerSymbols = [
     "circle",
     "diamond",
@@ -109,7 +125,7 @@ const allCategories = Object.keys(categoryCounts).sort((a, b) => {
           symbol: style.marker,
           size: 10,
           color: style.color,
-          opacity: 0.72,
+          opacity: 0.78,
           line: { color: "#1a1a1a", width: 0.8 }
         },
         hovertemplate:
@@ -143,11 +159,11 @@ const allCategories = Object.keys(categoryCounts).sort((a, b) => {
       showgrid: true,
       gridcolor: "#e6e6e6",
       gridwidth: 0.6,
-      range: [CONFIG.dates.min, CONFIG.dates.max]
+      range: [base.parseDate("2015-07-07"), base.parseDate("2025-12-12")]
     },
     yaxis: {
       title: "Power conversion efficiency (%)",
-      range: [CONFIG.efficiency.min, CONFIG.efficiency.max],
+      range: [15, 36],
       dtick: 5,
       showline: true,
       linecolor: "#666666",
@@ -160,7 +176,7 @@ const allCategories = Object.keys(categoryCounts).sort((a, b) => {
       orientation: "v",
       x: 0.02,
       y: 0.98,
-      bgcolor: "rgba(255,255,255,0.92)",
+      bgcolor: "rgba(255,255,255,1)",
       bordercolor: "#d0d0d0",
       borderwidth: 1,
       font: { size: 12 }
