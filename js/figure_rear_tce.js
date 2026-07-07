@@ -26,7 +26,7 @@ function renderRearTcePlot(rows) {
 
     const efficiency = base.getEfficiency(row);
     const rawLabel = tax.normalizeText(base.resolveField(row, ["Rear electrode", "Rear Electrode"]));
-    const family = tax.familyFrom...(rawLabel);
+    const family = tax.familyFromRear(rawLabel);
 
     if (!Number.isFinite(efficiency) || !family) return null;
 
