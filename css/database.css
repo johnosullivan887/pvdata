@@ -44,3 +44,10 @@
   cursor: pointer;
   user-select: none;
 }
+
+.highlight-cell {
+  max-width: 360px;
+  white-space: normal;
+  line-height: 1.35;
+  vertical-align: top;
+}
