@@ -1,1 +1,24 @@
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 28px;
+  background: #fff;
+  border-bottom: 1px solid #dbe3ef;
+}
 
+.logo {
+  max-height: 120px;
+  width: auto;
+  display: block;
+}
+
+.site-tagline {
+  margin: 0;
+  max-width: 420px;
+  text-align: right;
+  font-size: 20px;
+  line-height: 1.5;
+  color: #163463;
+}
