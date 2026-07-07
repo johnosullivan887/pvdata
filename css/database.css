@@ -1,6 +1,6 @@
 .database-controls {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  grid-template-columns: 2fr repeat(6, 1fr) auto;
   gap: 12px;
   margin: 16px 0 10px;
   align-items: center;
