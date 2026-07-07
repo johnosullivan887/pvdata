@@ -84,14 +84,37 @@ const PVDataIndium = (() => {
     );
   }
 
-  function classifyCellType(row) {
-    const raw = keyify(resolveField(row, ["Cell", "Si Bottom cell type"]));
+function classifyCellType(row) {
+  const raw = normalizeText(
+    resolveField(row, ["Cell", "Si Bottom cell type"])
+  ).toLowerCase();
 
-    if (raw.includes("shj") || raw.includes("heterojunction")) return "SHJ";
-    if (raw.includes("topcon") || raw.includes("polo")) return "TOPCon/POLO";
-    if (raw.includes("perc") || raw.includes("al-bsf") || raw.includes("bsf")) return "Al-BSF/PERC";
-    return "Other";
+  if (
+    raw.includes("shj") ||
+    raw.includes("heterojunction") ||
+    raw.includes("hjt")
+  ) {
+    return "SHJ";
   }
+
+  if (
+    raw.includes("topcon") ||
+    raw.includes("polo")
+  ) {
+    return "TOPCon/POLO";
+  }
+
+  if (
+    raw.includes("perc") ||
+    raw.includes("pert") ||
+    raw.includes("al-bsf") ||
+    raw.includes("bsf")
+  ) {
+    return "Al-BSF/PERC";
+  }
+
+  return "Other";
+}
 
   function indiumProfile(fraction, density) {
     return { mode: "indium", fraction, density };
