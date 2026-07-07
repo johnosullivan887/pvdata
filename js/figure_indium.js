@@ -2,9 +2,9 @@ function renderIndiumPlot(rows) {
   const plotDiv = document.getElementById("indium-plot");
   if (!plotDiv) return;
 
-  // Keep the plot wide and landscape
+  // Force a wide landscape panel
   plotDiv.style.width = "100%";
-  plotDiv.style.height = "620px";
+  plotDiv.style.height = "540px";
 
   const DEP_EFF = 0.8;
 
@@ -40,9 +40,11 @@ function renderIndiumPlot(rows) {
       return null;
     }
 
-    // Same physics as the Python script, but area cancels out
     const gramsPerW =
-      ((thicknessNm * 1e-7) / DEP_EFF) * density * indiumFraction * 1000 /
+      ((thicknessNm * 1e-7) / DEP_EFF) *
+      density *
+      indiumFraction *
+      1000 /
       ((efficiencyPct / 100) * 0.1);
 
     return Number.isFinite(gramsPerW) ? gramsPerW : null;
@@ -179,10 +181,7 @@ function renderIndiumPlot(rows) {
     document.getElementById("certified-only")?.checked ?? true;
 
   const plotRows = rows
-    .filter((row) => {
-      const eff = getEfficiency(row);
-      return Number.isFinite(eff);
-    })
+    .filter((row) => Number.isFinite(getEfficiency(row)))
     .map((row) => {
       const efficiency = getEfficiency(row);
       const activeArea = getActiveArea(row);
@@ -211,10 +210,10 @@ function renderIndiumPlot(rows) {
 
   const cellOrder = ["SHJ", "TOPCon/POLO", "Al-BSF/PERC", "Other"];
   const cellSymbols = {
-    "SHJ": "diamond",
-    "TOPCon/POLO": "circle",
+    SHJ: "diamond",
+    TOPCon/POLO: "circle",
     "Al-BSF/PERC": "triangle-up",
-    "Other": "star"
+    Other: "star"
   };
 
   const activeAreas = visibleRows
@@ -257,7 +256,9 @@ function renderIndiumPlot(rows) {
         x: group.map((row) => row.totalMgW),
         y: group.map((row) => row.efficiency),
         text: group.map((row) => {
-          const area = Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a";
+          const area = Number.isFinite(row.activeArea)
+            ? row.activeArea.toFixed(3)
+            : "n/a";
           return `Cell type: ${row.cellType}<br>Active area: ${area} cm²<br>Indium: ${row.totalMgW.toFixed(3)} mg/W`;
         }),
         hovertemplate:
@@ -266,8 +267,8 @@ function renderIndiumPlot(rows) {
           "%{text}<extra></extra>",
         marker: {
           symbol: cellSymbols[cell],
-          size: 11,
-          opacity: 0.80,
+          size: 12,
+          opacity: 0.82,
           color: group.map((row) => Math.log10(Math.max(row.activeArea, 0.01))),
           coloraxis: "coloraxis",
           line: { color: "#1a1a1a", width: 0.8 }
@@ -277,8 +278,8 @@ function renderIndiumPlot(rows) {
 
   const layout = {
     autosize: true,
-    height: 620,
-    margin: { l: 70, r: 25, t: 20, b: 60 },
+    height: 540,
+    margin: { l: 72, r: 28, t: 22, b: 62 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     font: {
@@ -287,25 +288,25 @@ function renderIndiumPlot(rows) {
       color: "#111111"
     },
     xaxis: {
-      title: "Indium content (mg·W⁻¹)",
+      title: "Indium content (mg W⁻¹)",
       range: [0, 11],
       showline: true,
-      linecolor: "#666666",
+      linecolor: "#222222",
       zeroline: false,
       showgrid: true,
-      gridcolor: "#e6e6e6",
-      gridwidth: 0.6
+      gridcolor: "#e5e5e5",
+      gridwidth: 0.7
     },
     yaxis: {
       title: "Power conversion efficiency (%)",
       range: [15, 35],
       dtick: 5,
       showline: true,
-      linecolor: "#666666",
+      linecolor: "#222222",
       zeroline: false,
       showgrid: true,
-      gridcolor: "#e6e6e6",
-      gridwidth: 0.6
+      gridcolor: "#e5e5e5",
+      gridwidth: 0.7
     },
     coloraxis: {
       colorscale: colorscale,
@@ -315,7 +316,10 @@ function renderIndiumPlot(rows) {
         title: "Cell active area (cm²)",
         tickmode: "array",
         tickvals: colorTickVals,
-        ticktext: colorTickText
+        ticktext: colorTickText,
+        thickness: 18,
+        outlinewidth: 0.8,
+        outlinecolor: "#222222"
       }
     },
     legend: {
@@ -325,8 +329,9 @@ function renderIndiumPlot(rows) {
       xanchor: "right",
       yanchor: "top",
       bgcolor: "rgba(255,255,255,0.92)",
-      bordercolor: "#d0d0d0",
-      borderwidth: 1
+      bordercolor: "#222222",
+      borderwidth: 1,
+      font: { size: 12 }
     },
     shapes: [
       {
@@ -335,7 +340,7 @@ function renderIndiumPlot(rows) {
         x1: 0.064,
         y0: 15,
         y1: 35,
-        line: { color: "#444444", width: 1, dash: "dash" }
+        line: { color: "#555555", width: 1, dash: "dash" }
       },
       {
         type: "line",
@@ -343,27 +348,62 @@ function renderIndiumPlot(rows) {
         x1: 1.159,
         y0: 15,
         y1: 35,
-        line: { color: "#444444", width: 1, dash: "dash" }
+        line: { color: "#555555", width: 1, dash: "dash" }
+      },
+      {
+        type: "line",
+        x0: 0.02,
+        x1: 0.02,
+        y0: 34.7,
+        y1: 37.2,
+        line: { color: "#f2d400", width: 6 }
       }
     ],
     annotations: [
       {
         x: 0.064,
         y: 35,
-        text: "0.064 mg·W⁻¹ (3 TW/yr)",
-        showarrow: false,
-        xanchor: "left",
-        yanchor: "bottom",
-        font: { size: 11, color: "#222222" }
+        text: "0.064 mg W⁻¹ (3 TW yr⁻¹)",
+        showarrow: true,
+        arrowhead: 0,
+        ax: 52,
+        ay: -42,
+        arrowcolor: "#222222",
+        arrowsize: 1,
+        arrowwidth: 1,
+        font: { size: 14, color: "#111111" },
+        align: "left",
+        bgcolor: "rgba(255,255,255,0.95)",
+        bordercolor: "rgba(0,0,0,0)",
+        borderpad: 2
       },
       {
         x: 1.159,
-        y: 34.6,
-        text: "1.159 mg·W⁻¹ (0.17 TW/yr)",
+        y: 35,
+        text: "1.159 mg W⁻¹ (0.17 TW yr⁻¹)",
+        showarrow: true,
+        arrowhead: 0,
+        ax: 48,
+        ay: -42,
+        arrowcolor: "#222222",
+        arrowsize: 1,
+        arrowwidth: 1,
+        font: { size: 14, color: "#111111" },
+        align: "left",
+        bgcolor: "rgba(255,255,255,0.95)",
+        bordercolor: "rgba(0,0,0,0)",
+        borderpad: 2
+      },
+      {
+        x: 0.0,
+        y: 1.03,
+        xref: "paper",
+        yref: "paper",
+        text: "<b>a</b>",
         showarrow: false,
+        font: { size: 26, color: "#111111" },
         xanchor: "left",
-        yanchor: "bottom",
-        font: { size: 11, color: "#222222" }
+        yanchor: "top"
       }
     ]
   };
@@ -373,4 +413,3 @@ function renderIndiumPlot(rows) {
     displayModeBar: true
   });
 }
-
