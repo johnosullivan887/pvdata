@@ -28,15 +28,11 @@
   <nav class="top-nav">
     <button class="nav-btn active" data-target="home">Home</button>
     <button class="nav-btn" data-target="database">Tandem Cell Database</button>
-    <button class="nav-btn active" data-target="indium-use">Indium Use in Tandems</button>
+    <button class="nav-btn" data-target="indium-use">Indium Use in Tandems</button>
     <button class="nav-btn" data-target="tce-materials">Tandem TCE Materials</button>
     <button class="nav-btn" data-target="evaluation">Evaluation</button>
-    <button class="nav-btn" data-target="figures">Tandem TCE Materials</button>
-    <button class="nav-btn" data-target="explore">Evaluation</button>
     <button class="nav-btn" data-target="about">About</button>
   </nav>
-
-  
 
   <main class="page">
     <section id="home" class="view active">
@@ -45,11 +41,11 @@
           <h1>Welcome to PVData</h1>
           <p>
             PVData is an open, interactive database of perovskite–silicon tandem solar cells.
-            Explore device efficiencies, materials, layer architectures, and indium use from the literature. 
+            Explore device efficiencies, materials, layer architectures, and indium use from the literature.
             An interactive companion to our review paper, showcasing its underlying databases:
-                <a href="https://doi.org/10.1038/s42254-026-00938-5" target="_blank" rel="noopener noreferrer">
-                  Transparent Conducting Electrodes for Perovskite-Silicon Tandem Solar Cells
-                </a>
+            <a href="https://doi.org/10.1038/s42254-026-00938-5" target="_blank" rel="noopener noreferrer">
+              Transparent Conducting Electrodes for Perovskite-Silicon Tandem Solar Cells
+            </a>
           </p>
 
           <div class="feature">
@@ -64,7 +60,7 @@
             <div class="feature-icon">⌕</div>
             <div>
               <h3>Interactive Visualizations</h3>
-              <p>Explore trends in efficiency, materials, and indium consumption. </p>
+              <p>Explore trends in efficiency, materials, and indium consumption.</p>
             </div>
           </div>
 
@@ -72,15 +68,17 @@
             <div class="feature-icon">↓</div>
             <div>
               <h3>Open and Transparent</h3>
-              <p>Download and reuse the data for your own research. </p>
-              <p> Please cite: O’Sullivan, J. et al. <a href="https://doi.org/10.1038/s42254-026-00938-5" target="_blank" rel="noopener noreferrer">
-                  Transparent Conducting Electrodes for Perovskite-Silicon Tandem Solar Cells, <em>Nature Reviews Physics</em> <b>8</b>, 344–364 (2026)
-                </a> </p>
+              <p>Download and reuse the data for your own research.</p>
+              <p>
+                Please cite: O’Sullivan, J. et al.
+                <a href="https://doi.org/10.1038/s42254-026-00938-5" target="_blank" rel="noopener noreferrer">
+                  Transparent Conducting Electrodes for Perovskite-Silicon Tandem Solar Cells,
+                  <em>Nature Reviews Physics</em> <b>8</b>, 344–364 (2026)
+                </a>
+              </p>
             </div>
           </div>
         </div>
-
-
 
         <div class="hero-image">
           <div class="hero-image-frame">
@@ -109,122 +107,124 @@
       </div>
     </section>
 
-  <section id="database" class="view">
-    <div class="panel">
-      <h2>Database</h2>
-      <p>
-        <a href="data/tandem.csv" download>Download tandem.csv</a>
-      </p>
-  
-      <div class="database-controls">
-        <input id="db-search" type="search" placeholder="Search author, year, cell type, TCEs, reference" />
-        <select id="db-certified">
-          <option value="all">All certification</option>
-          <option value="yes">Certified only</option>
-          <option value="no">Uncertified only</option>
-        </select>
-        <select id="db-year">
-          <option value="all">All years</option>
-        </select>
-        <select id="db-cell">
-          <option value="all">All cell types</option>
-        </select>
-        <select id="db-front">
-          <option value="all">All front TCEs</option>
-        </select>
-        <select id="db-interlayer">
-          <option value="all">All interlayer TCEs</option>
-        </select>
-        <select id="db-rear">
-          <option value="all">All rear TCEs</option>
-        </select>
-        <button id="db-reset" type="button">Reset</button>
+    <section id="database" class="view">
+      <div class="panel">
+        <h2>Database</h2>
+        <p>
+          <a href="data/tandem.csv" download>Download tandem.csv</a>
+        </p>
+
+        <div class="database-controls">
+          <input id="db-search" type="search" placeholder="Search author, year, cell type, TCEs, reference" />
+          <select id="db-certified">
+            <option value="all">All certification</option>
+            <option value="yes">Certified only</option>
+            <option value="no">Uncertified only</option>
+          </select>
+          <select id="db-year">
+            <option value="all">All years</option>
+          </select>
+          <select id="db-cell">
+            <option value="all">All cell types</option>
+          </select>
+          <select id="db-front">
+            <option value="all">All front TCEs</option>
+          </select>
+          <select id="db-interlayer">
+            <option value="all">All interlayer TCEs</option>
+          </select>
+          <select id="db-rear">
+            <option value="all">All rear TCEs</option>
+          </select>
+          <button id="db-reset" type="button">Reset</button>
+        </div>
+
+        <div id="database-summary" class="database-summary"></div>
+        <div id="database-table-wrap" class="table-wrap"></div>
       </div>
-  
-      <div id="database-summary" class="database-summary"></div>
-      <div id="database-table-wrap" class="table-wrap"></div>
-    </div>
-  </section>
-    
-    <section id="figures" class="view">
-      <div class="figure-layout">
-        <aside class="control-panel">
-          <h2>Controls</h2>
+    </section>
 
-          <label class="control-item">
-            <input type="checkbox" id="certified-only" />
-            Show certified values only
-          </label>
-        </aside>
+    <section id="indium-use" class="view">
+      <div class="figure-panel">
+        <h2>Indium Use in Tandems</h2>
+        <div id="indium-plot" style="width: 100%; height: 540px;"></div>
+      </div>
+    </section>
 
-        <div class="figure-panel">
-          <h2>Front TCO</h2>
-          <div id="front-tco-plot" style="width: 100%; height: 650px;"></div>
-          <h2 style="margin-top: 30px;">Indium mg/W</h2>
-          <div id="indium-plot" style="width: 100%; height: 650px; margin-top: 30px;"></div>
+    <section id="tce-materials" class="view">
+      <div class="figure-panel">
+        <h2>Tandem TCE Materials</h2>
+        <div id="front-tco-plot" style="width: 100%; height: 520px;"></div>
+        <div style="margin-top: 24px;">
+          <div id="interlayer-tce-plot" style="width: 100%; height: 520px;"></div>
+        </div>
+        <div style="margin-top: 24px;">
+          <div id="rear-tce-plot" style="width: 100%; height: 520px;"></div>
         </div>
       </div>
     </section>
 
-    <section id="explore" class="view">
+    <section id="evaluation" class="view">
       <div class="panel">
-        <h2>Pareto Frontier</h2>
-        <div id="pareto-plot" style="width: 100%; height: 540px;"></div>
+        <h2>Evaluation</h2>
+        <div id="violin-plot-1" style="width: 100%; height: 620px;"></div>
       </div>
-    
+
       <div class="panel" style="margin-top: 24px;">
-        <h2>Front TCO Adoption Timeline</h2>
-        <div id="timeline-plot" style="width: 100%; height: 420px;"></div>
+        <div id="violin-plot-2" style="width: 100%; height: 620px;"></div>
       </div>
-    
+
       <div class="panel" style="margin-top: 24px;">
         <h2>Front TCO vs Rear TCE Combinations</h2>
         <div id="heatmap-plot" style="width: 100%; height: 520px;"></div>
       </div>
+
       <div class="panel" style="margin-top: 24px;">
-        <h2>Efficiency distributions</h2>
-        <div id="violin-plot-1" style="width: 100%; height: 620px;"></div>
-      </div>
-      <div class="panel" style="margin-top: 24px;">
-        <h2>TCE thickness distributions</h2>
-        <div id="violin-plot-2" style="width: 100%; height: 620px;"></div>
+        <h2>Front TCE Adoption Timeline</h2>
+        <div id="timeline-plot" style="width: 100%; height: 420px;"></div>
       </div>
     </section>
 
     <section id="about" class="view">
       <div class="panel">
         <h2>About</h2>
-        <p>PVData is a literature database to visualise tandem solar-cell materials and their properties.
-          </p>
-          <p>
-          © John O'Sullivan. University of Oxford. 2026. <a href="https://johnosullivan887.github.io/researchprofile/" target="_blank" rel="noopener noreferrer">
-        Visit Homepage →
-        </a></p>
-        <p>Many thanks to Bruno Vicari Stefani for the inital python scripts used to visualise the data. </p>
+        <p>
+          PVData is a literature database to visualise tandem solar-cell materials and their properties.
+        </p>
+        <p>
+          © John O'Sullivan. University of Oxford. 2026.
+          <a href="https://johnosullivan887.github.io/researchprofile/" target="_blank" rel="noopener noreferrer">
+            Visit Homepage →
+          </a>
+        </p>
+        <p>Many thanks to Bruno Vicari Stefani for the initial python scripts used to visualise the data.</p>
       </div>
-              
-          <div class="feature">
-            <div class="feature-icon">→</div>
-            <div>
-              <h3>Coming Soon</h3>
-              <p> Updated data up to July 2026. </p>
-            </div>
-          </div>
+
+      <div class="feature">
+        <div class="feature-icon">→</div>
+        <div>
+          <h3>Coming Soon</h3>
+          <p>Updated data up to July 2026.</p>
+        </div>
+      </div>
     </section>
-    
   </main>
 
   <script src="js/config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/figure_front_tco.js"></script>
   <script src="js/indium.js"></script>
+  <script src="js/data.js"></script>
+
+  <script src="js/figure_tce_material_base.js"></script>
+  <script src="js/figure_front_tco.js"></script>
+  <script src="js/figure_interlayer_tce.js"></script>
+  <script src="js/figure_rear_tce.js"></script>
+
   <script src="js/figure_indium.js"></script>
-  <script src="js/figure_pareto.js"></script>
-  <script src="js/figure_timeline.js"></script>
-  <script src="js/figure_heatmap.js"></script>
   <script src="js/figure_violin_groups.js"></script>
   <script src="js/figure_violin_thickness.js"></script>
+  <script src="js/figure_heatmap.js"></script>
+  <script src="js/figure_timeline.js"></script>
+
   <script src="js/main.js"></script>
 </body>
 </html>
