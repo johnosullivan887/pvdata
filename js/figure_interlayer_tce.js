@@ -25,7 +25,7 @@ function renderInterlayerTcePlot(rows) {
 
     const efficiency = base.getEfficiency(row);
     const rawLabel = tax.normalizeText(base.resolveField(row, ["Interlayer TCE", "Inter-layer"]));
-    const family = tax.familyFrom...(rawLabel);
+    const family = tax.familyFromInterlayer(rawLabel);
 
     if (!Number.isFinite(efficiency) || !family) return null;
 
