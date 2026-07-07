@@ -39,3 +39,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+.data-table th[data-sort] {
+  cursor: pointer;
+  user-select: none;
+}
