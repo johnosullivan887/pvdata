@@ -51,6 +51,18 @@ function renderIndiumPlot(rows) {
     return "Other";
   };
 
+  const twYrFromMgW = (mgW) => {
+    const x1 = 0.064;
+    const y1 = 3.0;
+    const x2 = 1.159;
+    const y2 = 0.17;
+
+    const b = Math.log(y2 / y1) / Math.log(x2 / x1);
+    const a = y1 / Math.pow(x1, b);
+
+    return a * Math.pow(mgW, b);
+  };
+
   const plotRows = rows
     .map((row) => {
       const computed = PVDataIndium.computeRow(row);
@@ -64,7 +76,8 @@ function renderIndiumPlot(rows) {
 
       return {
         ...computed,
-        cellType: classifyCellType(row)
+        cellType: classifyCellType(row),
+        twYr: twYrFromMgW(computed.totalMgW)
       };
     })
     .filter(Boolean);
@@ -104,7 +117,7 @@ function renderIndiumPlot(rows) {
   const colorMax = Math.log10(16);
 
   const tickValues = [0.01, 0.1, 1, 10].map((v) => Math.log10(v));
-  const tickText = ["10<sup>-2</sup>", "10<sup>-1</sup>", "10<sup>0</sup>", "10<sup>1</sup>"];
+  const tickText = ["10⁻²", "10⁻¹", "10⁰", "10¹"];
 
   const legendTraces = cellOrder
     .filter((cell) => visibleRows.some((row) => row.cellType === cell))
@@ -144,7 +157,8 @@ function renderIndiumPlot(rows) {
           row.year,
           row.paperUrl,
           row.cellType,
-          Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a"
+          Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a",
+          Number.isFinite(row.twYr) ? row.twYr : null
         ]),
         marker: {
           symbol: cellSymbols[cell],
@@ -157,6 +171,7 @@ function renderIndiumPlot(rows) {
         hovertemplate:
           "<b>%{x:.3f} mg W⁻¹</b><br>" +
           "Efficiency: %{y:.2f}%<br>" +
+          "TW/yr: %{customdata[5]:.2f}<br>" +
           "Author: %{customdata[0]}<br>" +
           "Year: %{customdata[1]}<br>" +
           "Cell type: %{customdata[3]}<br>" +
@@ -223,7 +238,78 @@ function renderIndiumPlot(rows) {
       bordercolor: "#222222",
       borderwidth: 1,
       font: { size: 12 }
-    }
+    },
+    shapes: [
+      {
+        type: "line",
+        x0: 0.064,
+        x1: 0.064,
+        y0: 15,
+        y1: 35,
+        line: { color: "#555555", width: 1, dash: "dash" }
+      },
+      {
+        type: "line",
+        x0: 1.159,
+        x1: 1.159,
+        y0: 15,
+        y1: 35,
+        line: { color: "#555555", width: 1, dash: "dash" }
+      }
+    ],
+    annotations: [
+      {
+        x: 0.064,
+        y: 35,
+        text: "0.064 mg W⁻¹ (3 TW yr⁻¹)",
+        showarrow: true,
+        arrowhead: 0,
+        ax: 52,
+        ay: -42,
+        arrowcolor: "#222222",
+        arrowsize: 1,
+        arrowwidth: 1,
+        font: { size: 14, color: "#111111" },
+        align: "left",
+        bgcolor: "rgba(255,255,255,0.95)",
+        bordercolor: "rgba(0,0,0,0)",
+        borderpad: 2
+      },
+      {
+        x: 1.159,
+        y: 35,
+        text: "1.159 mg W⁻¹ (0.17 TW yr⁻¹)",
+        showarrow: true,
+        arrowhead: 0,
+        ax: 48,
+        ay: -42,
+        arrowcolor: "#222222",
+        arrowsize: 1,
+        arrowwidth: 1,
+        font: { size: 14, color: "#111111" },
+        align: "left",
+        bgcolor: "rgba(255,255,255,0.95)",
+        bordercolor: "rgba(0,0,0,0)",
+        borderpad: 2
+      },
+      {
+        x: 0.03,
+        y: 0.08,
+        xref: "paper",
+        yref: "paper",
+        text:
+          "TW/yr conversion:<br>" +
+          "0.064 mg W⁻¹ → 3 TW yr⁻¹<br>" +
+          "1.159 mg W⁻¹ → 0.17 TW yr⁻¹",
+        showarrow: false,
+        align: "left",
+        bgcolor: "rgba(255,255,255,0.95)",
+        bordercolor: "#222222",
+        borderwidth: 1,
+        borderpad: 6,
+        font: { size: 12, color: "#111111" }
+      }
+    ]
   };
 
   Plotly.react(plotDiv, [...legendTraces, ...dataTraces], layout, {
