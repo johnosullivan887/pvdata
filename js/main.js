@@ -140,6 +140,7 @@ function buildReferenceCell(row) {
 }
 
 let databaseRows = [];
+let databaseSort = { key: null, direction: "asc" };
 
 function getDatabaseYear(row) {
   const yearRaw = getValue(row, "Year");
