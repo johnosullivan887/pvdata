@@ -85,9 +85,7 @@ const PVDataIndium = (() => {
   }
 
 function classifyCellType(row) {
-  const raw = normalizeText(
-    resolveField(row, ["Cell", "Si Bottom cell type"])
-  ).toLowerCase();
+  const raw = normalizeText(resolveField(row, ["Cell", "Si Bottom cell type"])).toLowerCase();
 
   if (
     raw.includes("shj") ||
@@ -107,6 +105,8 @@ function classifyCellType(row) {
   if (
     raw.includes("perc") ||
     raw.includes("pert") ||
+    raw.includes("homojunction") ||
+    raw.includes("homo-junction") ||
     raw.includes("al-bsf") ||
     raw.includes("bsf")
   ) {
@@ -115,7 +115,6 @@ function classifyCellType(row) {
 
   return "Other";
 }
-
   function indiumProfile(fraction, density) {
     return { mode: "indium", fraction, density };
   }
