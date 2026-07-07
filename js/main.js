@@ -449,6 +449,9 @@ function renderAllFigures() {
   if (typeof renderCombinationHeatmap === "function") {
     renderCombinationHeatmap(tableData);
   }
+  if (typeof renderViolinGroupsPlot === "function") {
+  renderViolinGroupsPlot(tableData);
+  }
 }
 
 document.addEventListener("change", (event) => {
