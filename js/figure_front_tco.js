@@ -26,10 +26,15 @@ function renderFrontTcoPlot(rows) {
 
   plotRows.sort((a, b) => a.date - b.date);
 
-  const allCategories = [...new Set(cleanRows.map((row) => row.frontTCO))].sort(
-    (a, b) => a.localeCompare(b)
-  );
+const categoryCounts = cleanRows.reduce((acc, row) => {
+  acc[row.frontTCO] = (acc[row.frontTCO] || 0) + 1;
+  return acc;
+}, {});
 
+const allCategories = Object.keys(categoryCounts).sort((a, b) => {
+  const diff = categoryCounts[b] - categoryCounts[a];
+  return diff !== 0 ? diff : a.localeCompare(b); // alphabetical tie-break
+});
   const markerSymbols = [
     "circle",
     "diamond",
