@@ -16,7 +16,10 @@ navButtons.forEach((button) => {
       view.classList.toggle("active", view.id === target);
     });
 
-    if (target === "figures" && tableData.length) {
+    if (
+      tableData.length &&
+      ["indium-use", "tce-materials", "evaluation"].includes(target)
+    ) {
       renderAllFigures();
     }
   });
@@ -46,7 +49,7 @@ function parseNumber(value) {
 
 function getValue(row, ...keys) {
   for (const key of keys) {
-    const value = row[key];
+    const value = row?.[key];
     if (value !== undefined && value !== null && String(value).trim() !== "") {
       return String(value).trim();
     }
@@ -79,53 +82,23 @@ function formatReference(value) {
   return escapeHtml(ref);
 }
 
-function getPaperUrl(row) {
-  const ref = getValue(row, "Reference", "Reference link", "DOI");
-  if (!ref) return "";
-
-  if (/^https?:\/\//i.test(ref)) return ref;
-
-  if (/^10\.\d{4,9}\//i.test(ref)) {
-    return `https://doi.org/${ref}`;
-  }
-
-  return "";
-}
-
-function getPaperHighlight(row) {
-  return getValue(row, "Highlight");
-}
-
-function bindPaperOpenBehavior(plotDiv) {
-  if (!plotDiv || plotDiv.dataset.paperBound === "true") return;
-
-  plotDiv.dataset.paperBound = "true";
-
-  let lastPaperUrl = "";
-
-  plotDiv.on("plotly_click", (eventData) => {
-    const point = eventData?.points?.[0];
-    const url = point?.customdata?.[2] || "";
-    lastPaperUrl = url;
-  });
-
-  plotDiv.addEventListener("dblclick", () => {
-    if (lastPaperUrl) {
-      window.open(lastPaperUrl, "_blank", "noopener,noreferrer");
-    }
-  });
-}
-
 function normalizeCategory(value) {
   const text = String(value ?? "").trim();
-  if (text === "") return "";
+  if (!text) return "";
 
   const lower = text.toLowerCase();
   if (lower === "not clear") return "Not clear";
   if (lower === "none") return "None";
   if (lower === "other") return "Other";
+  if (lower === "in-free" || lower === "in free") return "In-Free";
+  if (lower === "no layer") return "No layer";
+  if (lower === "no tce") return "No TCE";
 
   return text;
+}
+
+function getPaperHighlight(row) {
+  return getValue(row, "Highlight");
 }
 
 function getDatabaseYear(row) {
@@ -147,7 +120,7 @@ function getDatabaseDateSortValue(row) {
 }
 
 function getDatabaseCell(row) {
-  return getValue(row, "Si Bottom cell type", "Cell");
+  return normalizeCategory(getValue(row, "Si Bottom cell type", "Cell"));
 }
 
 function getDatabaseFrontTCO(row) {
@@ -180,7 +153,7 @@ function compareDatabaseValues(a, b) {
 
   return String(a ?? "").localeCompare(String(b ?? ""), undefined, {
     numeric: true,
-    sensitivity: "base",
+    sensitivity: "base"
   });
 }
 
@@ -195,7 +168,9 @@ function sortHeaderHtml(label, key) {
 }
 
 function uniqueSorted(values, comparator) {
-  return [...new Set(values.filter((v) => String(v ?? "").trim() !== ""))].sort(comparator);
+  return [...new Set(values.filter((v) => String(v ?? "").trim() !== ""))].sort(
+    comparator
+  );
 }
 
 function fillSelect(selectId, values, allLabel, keyFn = (v) => v) {
@@ -204,7 +179,12 @@ function fillSelect(selectId, values, allLabel, keyFn = (v) => v) {
 
   const current = select.value || "all";
   const options = [`<option value="all">${allLabel}</option>`]
-    .concat(values.map((v) => `<option value="${escapeHtml(keyFn(v))}">${escapeHtml(v)}</option>`))
+    .concat(
+      values.map(
+        (v) =>
+          `<option value="${escapeHtml(keyFn(v))}">${escapeHtml(v)}</option>`
+      )
+    )
     .join("");
 
   select.innerHTML = options;
@@ -215,7 +195,9 @@ function populateDatabaseFilters(rows) {
   const years = uniqueSorted(rows.map(getDatabaseYear), (a, b) => Number(b) - Number(a));
   const cells = uniqueSorted(rows.map(getDatabaseCell), (a, b) => a.localeCompare(b));
   const fronts = uniqueSorted(rows.map(getDatabaseFrontTCO), (a, b) => a.localeCompare(b));
-  const interlayers = uniqueSorted(rows.map(getDatabaseInterlayerTCE), (a, b) => a.localeCompare(b));
+  const interlayers = uniqueSorted(rows.map(getDatabaseInterlayerTCE), (a, b) =>
+    a.localeCompare(b)
+  );
   const rears = uniqueSorted(rows.map(getDatabaseRearTCE), (a, b) => a.localeCompare(b));
 
   fillSelect("db-year", years, "All years");
@@ -243,12 +225,24 @@ function rowMatchesDatabase(row, filters) {
     getValue(row, "Publishing date", "Date", "Year"),
     getValue(row, "Highlight"),
     getValue(row, "Si Bottom cell type", "Cell"),
-    getValue(row, "Interlayer TCE", "Inter-layer", "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"),
+    getValue(
+      row,
+      "Interlayer TCE",
+      "Inter-layer",
+      "Inter-layer thicknes",
+      "Inter-layer thickness",
+      "IL thickness (nm)"
+    ),
     getValue(row, "Rear Electrode", "Rear electrode"),
     getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"),
     getValue(row, "Active Area (cm2)", "Cell active area"),
     getValue(row, "Front TCE (fTCE)", "Front TCO"),
-    getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"),
+    getValue(
+      row,
+      "fTCE thickness (nm)",
+      "Front TCO thickness",
+      "Total front TCO thickness"
+    ),
     getValue(row, "η (%)", "n tandem"),
     getValue(row, "Certified (yes/no)", "Certified", "certified"),
     getValue(row, "Reference", "Reference link", "DOI")
@@ -261,7 +255,8 @@ function rowMatchesDatabase(row, filters) {
   if (filters.year !== "all" && getDatabaseYear(row) !== filters.year) return false;
   if (filters.cell !== "all" && getDatabaseCell(row) !== filters.cell) return false;
   if (filters.front !== "all" && getDatabaseFrontTCO(row) !== filters.front) return false;
-  if (filters.interlayer !== "all" && getDatabaseInterlayerTCE(row) !== filters.interlayer) return false;
+  if (filters.interlayer !== "all" && getDatabaseInterlayerTCE(row) !== filters.interlayer)
+    return false;
   if (filters.rear !== "all" && getDatabaseRearTCE(row) !== filters.rear) return false;
 
   return true;
@@ -293,14 +288,21 @@ function renderDatabaseTable() {
     cell: (row) => getDatabaseCell(row),
     interlayer: (row) => getDatabaseInterlayerTCE(row),
     "interlayer-thickness": (row) =>
-      getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"),
+      getValue(
+        row,
+        "Inter-layer thicknes",
+        "Inter-layer thickness",
+        "IL thickness (nm)",
+        "Inter-layer TCE thickness"
+      ),
     rear: (row) => getDatabaseRearTCE(row),
     "rear-thickness": (row) => getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"),
     area: (row) => getValue(row, "Active Area (cm2)", "Cell active area"),
     front: (row) => getDatabaseFrontTCO(row),
-    "front-thickness": (row) => getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"),
+    "front-thickness": (row) =>
+      getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"),
     efficiency: (row) => getValue(row, "η (%)", "n tandem"),
-    certified: (row) => getDatabaseCertified(row),
+    certified: (row) => getDatabaseCertified(row)
   };
 
   if (databaseSort.key && accessorMap[databaseSort.key]) {
@@ -322,12 +324,22 @@ function renderDatabaseTable() {
           <td class="highlight-cell" title="${escapeHtml(highlight)}">${escapeHtml(highlight)}</td>
           <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
           <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer"))}</td>
-          <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
+          <td>${escapeHtml(
+            getValue(
+              row,
+              "Inter-layer thicknes",
+              "Inter-layer thickness",
+              "IL thickness (nm)",
+              "Inter-layer TCE thickness"
+            )
+          )}</td>
           <td>${escapeHtml(getValue(row, "Rear Electrode", "Rear electrode"))}</td>
           <td>${escapeHtml(getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"))}</td>
           <td>${escapeHtml(getValue(row, "Active Area (cm2)", "Cell active area"))}</td>
           <td>${escapeHtml(getValue(row, "Front TCE (fTCE)", "Front TCO"))}</td>
-          <td>${escapeHtml(getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"))}</td>
+          <td>${escapeHtml(
+            getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness")
+          )}</td>
           <td>${escapeHtml(getValue(row, "η (%)", "n tandem"))}</td>
           <td>${escapeHtml(getValue(row, "Certified (yes/no)", "Certified", "certified"))}</td>
           <td>${formatReference(getValue(row, "Reference", "Reference link", "DOI"))}</td>
@@ -430,33 +442,14 @@ function renderDatabase(rows) {
 }
 
 function renderAllFigures() {
-  if (typeof renderFrontTcoPlot === "function") {
-    renderFrontTcoPlot(tableData);
-  }
-
-  if (typeof renderIndiumPlot === "function") {
-    renderIndiumPlot(tableData);
-  }
-
-  if (typeof renderParetoPlot === "function") {
-    renderParetoPlot(tableData);
-  }
-
-  if (typeof renderTimelinePlot === "function") {
-    renderTimelinePlot(tableData);
-  }
-
-  if (typeof renderCombinationHeatmap === "function") {
-    renderCombinationHeatmap(tableData);
-  }
-
-  if (typeof renderViolinGroupsPlot === "function") {
-    renderViolinGroupsPlot(tableData);
-  }
-
-  if (typeof renderViolinThicknessPlot === "function") {
-    renderViolinThicknessPlot(tableData);
-  }
+  if (typeof renderIndiumPlot === "function") renderIndiumPlot(tableData);
+  if (typeof renderFrontTcoPlot === "function") renderFrontTcoPlot(tableData);
+  if (typeof renderInterlayerTcePlot === "function") renderInterlayerTcePlot(tableData);
+  if (typeof renderRearTcePlot === "function") renderRearTcePlot(tableData);
+  if (typeof renderViolinGroupsPlot === "function") renderViolinGroupsPlot(tableData);
+  if (typeof renderViolinThicknessPlot === "function") renderViolinThicknessPlot(tableData);
+  if (typeof renderCombinationHeatmap === "function") renderCombinationHeatmap(tableData);
+  if (typeof renderTimelinePlot === "function") renderTimelinePlot(tableData);
 }
 
 document.addEventListener("change", (event) => {
