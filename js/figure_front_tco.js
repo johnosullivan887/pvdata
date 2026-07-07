@@ -14,34 +14,49 @@ function renderFrontTcoPlot(rows) {
   plotDiv.style.height = "520px";
 
   const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
+  const materialUtilisation = Number(document.getElementById("indium-util-eff")?.value ?? 80) / 100;
 
+  const getRowYear = (row) => {
+    const yearText = String(base.getYear(row) ?? "").trim();
+    const match = yearText.match(/(19|20)\d{2}/);
+    if (match) return Number(match[0]);
+
+    const dateText = base.resolveField(row, ["Publishing date", "Date"]);
+    const parsedDate = base.parseDate(dateText);
+    if (parsedDate && !isNaN(parsedDate.getTime())) return parsedDate.getFullYear();
+
+    return NaN;
+  };
 
   const plotRows = rows
-  .map((row) => {
-    const dateText = base.resolveField(row, ["Publishing date", "Date"]);
-    const yearText = base.getYear(row);
-    const date =
-      base.parseDate(dateText) ||
-      (yearText ? new Date(Number(yearText), 0, 1) : null);
+    .map((row) => {
+      const dateText = base.resolveField(row, ["Publishing date", "Date"]);
+      const yearText = base.getYear(row);
+      const date =
+        base.parseDate(dateText) ||
+        (yearText ? new Date(Number(yearText), 0, 1) : null);
 
-    const efficiency = base.getEfficiency(row);
-    const rawLabel = tax.normalizeText(base.resolveField(row, ["Front TCO", "Front TCE (fTCE)"]));
-    const family = tax.familyFromFront(rawLabel);
+      const efficiency = base.getEfficiency(row);
+      const rawLabel = tax.normalizeText(
+        base.resolveField(row, ["Front TCO", "Front TCE (fTCE)"])
+      );
+      const family = tax.familyFromFront(rawLabel);
 
-    if (!Number.isFinite(efficiency) || !family) return null;
+      if (!date || !Number.isFinite(efficiency) || !family) return null;
 
-    return {
-      date,
-      efficiency,
-      rawLabel,
-      family,
-      certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
-      author: base.getAuthor(row),
-      year: yearText,
-      paperUrl: base.getPaperUrl(row)
-    };
-  })
-  .filter(Boolean);
+      return {
+        date,
+        efficiency,
+        rawLabel,
+        family,
+        certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
+        author: base.getAuthor(row),
+        year: yearText,
+        yearNum: getRowYear(row),
+        paperUrl: base.getPaperUrl(row)
+      };
+    })
+    .filter(Boolean);
 
   const familyCounts = plotRows.reduce((acc, row) => {
     acc[row.family] = (acc[row.family] || 0) + 1;
@@ -57,67 +72,82 @@ function renderFrontTcoPlot(rows) {
     ? plotRows.filter((row) => row.certified === "yes")
     : plotRows;
 
-  const legendTraces = allFamilies
-    .filter((family) => visibleRows.some((row) => row.family === family))
-    .map((family) => {
-      const style = tax.familyStyle(family);
+  const yearMaxEl = document.getElementById("indium-year-max");
+  const maxYear = Number(yearMaxEl?.value ?? 2026);
 
-      return {
-        type: "scatter",
-        mode: "markers",
-        name: family,
-        x: [null],
-        y: [null],
-        showlegend: true,
-        hoverinfo: "skip",
-        marker: {
-          symbol: style.symbol,
-          size: 11,
-          color: "white",
-          line: {
-            color: style.color,
-            width: 2
-          }
-        }
-      };
-    });
+  const filteredRows = visibleRows.filter((row) => {
+    if (Number.isFinite(row.yearNum) && row.yearNum > maxYear) return false;
+    return true;
+  });
 
-  const dataTraces = allFamilies
-    .filter((family) => visibleRows.some((row) => row.family === family))
-    .map((family) => {
-      const style = tax.familyStyle(family);
-      const group = visibleRows.filter((row) => row.family === family);
+  const categoryCounts = filteredRows.reduce((acc, row) => {
+    acc[row.family] = (acc[row.family] || 0) + 1;
+    return acc;
+  }, {});
 
-      return {
-        type: "scatter",
-        mode: "markers",
-        name: family,
-        showlegend: false,
-        x: group.map((row) => row.date),
-        y: group.map((row) => row.efficiency),
-        customdata: group.map((row) => [
-          row.author,
-          row.year,
-          row.paperUrl,
-          row.family,
-          row.rawLabel
-        ]),
-        marker: {
-          symbol: style.symbol,
-          size: 10,
+  const orderedFamilies = Object.keys(categoryCounts).sort((a, b) => {
+    const diff = categoryCounts[b] - categoryCounts[a];
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
+
+  const legendTraces = orderedFamilies.map((family) => {
+    const style = tax.familyStyle(family);
+
+    return {
+      type: "scatter",
+      mode: "markers",
+      name: family,
+      x: [null],
+      y: [null],
+      showlegend: true,
+      hoverinfo: "skip",
+      marker: {
+        symbol: style.symbol,
+        size: 11,
+        color: "white",
+        line: {
           color: style.color,
-          opacity: 0.8,
-          line: { color: "#1a1a1a", width: 0.7 }
-        },
-        hovertemplate:
-          "<b>%{x|%Y-%m-%d}</b><br>" +
-          "Efficiency: %{y:.2f}%<br>" +
-          "Family: %{customdata[3]}<br>" +
-          "Raw label: %{customdata[4]}<br>" +
-          "Author: %{customdata[0]}<br>" +
-          "Year: %{customdata[1]}<extra></extra>"
-      };
-    });
+          width: 2
+        }
+      }
+    };
+  });
+
+  const dataTraces = orderedFamilies.map((family) => {
+    const style = tax.familyStyle(family);
+    const group = filteredRows.filter((row) => row.family === family);
+
+    return {
+      type: "scatter",
+      mode: "markers",
+      name: family,
+      showlegend: false,
+      x: group.map((row) => row.date),
+      y: group.map((row) => row.efficiency),
+      customdata: group.map((row) => [
+        row.author,
+        row.year,
+        row.paperUrl,
+        row.family,
+        row.rawLabel,
+        Number.isFinite(row.twYr) ? row.twYr : null
+      ]),
+      marker: {
+        symbol: style.symbol,
+        size: 10,
+        color: style.color,
+        opacity: 0.8,
+        line: { color: "#1a1a1a", width: 0.7 }
+      },
+      hovertemplate:
+        "<b>%{x|%Y-%m-%d}</b><br>" +
+        "Efficiency: %{y:.2f}%<br>" +
+        "Family: %{customdata[3]}<br>" +
+        "Raw label: %{customdata[4]}<br>" +
+        "Author: %{customdata[0]}<br>" +
+        "Year: %{customdata[1]}<extra></extra>"
+    };
+  });
 
   const layout = {
     autosize: true,
