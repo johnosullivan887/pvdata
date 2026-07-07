@@ -95,13 +95,34 @@
       </div>
     </section>
 
-    <section id="database" class="view">
-      <div class="panel">
-        <h2>Database</h2>
-        <p>Next step: searchable table loaded from <code>data/tandem.csv</code>.</p>
+  <section id="database" class="view">
+    <div class="panel">
+      <h2>Database</h2>
+  
+      <div class="database-controls">
+        <input id="db-search" type="search" placeholder="Search author, year, cell type, TCEs, reference" />
+        <select id="db-certified">
+          <option value="all">All certification</option>
+          <option value="yes">Certified only</option>
+          <option value="no">Uncertified only</option>
+        </select>
+        <select id="db-year">
+          <option value="all">All years</option>
+        </select>
+        <select id="db-cell">
+          <option value="all">All cell types</option>
+        </select>
+        <select id="db-front">
+          <option value="all">All front TCEs</option>
+        </select>
+        <button id="db-reset" type="button">Reset</button>
       </div>
-    </section>
-
+  
+      <div id="database-summary" class="database-summary"></div>
+      <div id="database-table-wrap" class="table-wrap"></div>
+    </div>
+  </section>
+    
     <section id="figures" class="view">
       <div class="figure-layout">
         <aside class="control-panel">
