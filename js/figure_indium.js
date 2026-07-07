@@ -51,15 +51,15 @@ function renderIndiumPlot(rows) {
   };
 
   const FRONT_LOOKUP = {
-    "ITO": [0.74, 7.14],
-    "IZO": [0.827 * 0.9, 7.14],
+    ITO: [0.74, 7.14],
+    IZO: [0.827 * 0.9, 7.14],
     "IO:H/ITO": [0.827 * 0.9 + 0.74 * 0.1, 7.14],
-    "IWO": [0.827 * 0.99, 7.14],
-    "IZrO": [0.827 * 0.98, 7.14],
-    "AgNWs": [0.0, 0.0],
-    "AZO": [0.0, 0.0],
+    IWO: [0.827 * 0.99, 7.14],
+    IZrO: [0.827 * 0.98, 7.14],
+    AgNWs: [0.0, 0.0],
+    AZO: [0.0, 0.0],
     "MoOx/Au/MoOx": [0.0, 0.0],
-    "Other": [0.0, 0.0]
+    Other: [0.0, 0.0]
   };
 
   const REAR_LOOKUP = {
@@ -83,8 +83,8 @@ function renderIndiumPlot(rows) {
     "IZrO/Ag": [0.827 * 0.98, 7.14],
     "IZrO/SiOx/Ag": [0.827 * 0.98, 7.14],
     "IWO/Ag": [0.827 * 0.99, 7.14],
-    "Ag": [0.0, 0.0],
-    "Al": [0.0, 0.0],
+    Ag: [0.0, 0.0],
+    Al: [0.0, 0.0],
     "Ag/Al": [0.0, 0.0],
     "Al/Ag": [0.0, 0.0],
     "Al/Ti/Ag": [0.0, 0.0],
@@ -93,21 +93,21 @@ function renderIndiumPlot(rows) {
     "Cr/Ag": [0.0, 0.0],
     "Cr/Pd/Ag/Ag/Al": [0.0, 0.0],
     "TCO/Ag": [0.0, 0.0],
-    "Other": [0.0, 0.0]
+    Other: [0.0, 0.0]
   };
 
   const INTER_LOOKUP = {
-    "IWO": [0.827 * 0.99, 7.14],
-    "ITO": [0.74, 7.14],
-    "IZO": [0.827 * 0.9, 7.14],
-    "InOx": [0.827, 7.14],
+    IWO: [0.827 * 0.99, 7.14],
+    ITO: [0.74, 7.14],
+    IZO: [0.827 * 0.9, 7.14],
+    InOx: [0.827, 7.14],
     "Doped InOx": [0.74, 7.14],
     "Doped-InOx:H": [0.74, 7.14],
     "InOx:H": [0.827, 7.14],
-    "ZTO": [0.0, 0.0],
-    "None": [0.0, 0.0],
+    ZTO: [0.0, 0.0],
+    None: [0.0, 0.0],
     "No layer": [0.0, 0.0],
-    "Other": [0.0, 0.0]
+    Other: [0.0, 0.0]
   };
 
   const classifyCellType = (row) => {
@@ -119,20 +119,16 @@ function renderIndiumPlot(rows) {
     return "Other";
   };
 
-  const getActiveArea = (row) => {
-    return toNumber(
-      resolveField(row, [
-        "Cell active area",
-        "Active Area (cm2)",
-        "Active area",
-        "Area"
-      ])
-    );
-  };
+  const getActiveArea = (row) => toNumber(
+    resolveField(row, [
+      "Cell active area",
+      "Active Area (cm2)",
+      "Active area",
+      "Area"
+    ])
+  );
 
-  const getEfficiency = (row) => {
-    return toNumber(resolveField(row, ["n tandem", "η (%)", "Efficiency"]));
-  };
+  const getEfficiency = (row) => toNumber(resolveField(row, ["n tandem", "η (%)", "Efficiency"]));
 
   const getFrontMgW = (row, efficiencyPct) => {
     const tco = normalize(resolveField(row, ["Front TCO", "Front TCE (fTCE)"]));
@@ -169,7 +165,8 @@ function renderIndiumPlot(rows) {
       resolveField(row, [
         "Inter-layer thickness",
         "IL thickness (nm)",
-        "Interlayer thickness"
+        "Interlayer thickness",
+        "Inter-layer thicknes"
       ])
     );
 
@@ -177,14 +174,14 @@ function renderIndiumPlot(rows) {
     return calcMgPerW(thickness, efficiencyPct, lookup[0], lookup[1]);
   };
 
-  const certifiedOnly =
-    document.getElementById("certified-only")?.checked ?? true;
+  const certifiedOnly = document.getElementById("certified-only")?.checked ?? true;
 
   const plotRows = rows
-    .filter((row) => Number.isFinite(getEfficiency(row)))
     .map((row) => {
       const efficiency = getEfficiency(row);
       const activeArea = getActiveArea(row);
+
+      if (!Number.isFinite(efficiency)) return null;
 
       const front = getFrontMgW(row, efficiency);
       const rear = getRearMgW(row, efficiency);
@@ -202,7 +199,7 @@ function renderIndiumPlot(rows) {
         certified: normalize(resolveField(row, ["Certified", "certified"])).toLowerCase()
       };
     })
-    .filter((row) => row.totalMgW !== null && Number.isFinite(row.efficiency));
+    .filter((row) => row && row.totalMgW !== null && Number.isFinite(row.efficiency));
 
   const visibleRows = certifiedOnly
     ? plotRows.filter((row) => row.certified === "yes")
@@ -220,25 +217,27 @@ function renderIndiumPlot(rows) {
     .map((row) => row.activeArea)
     .filter((v) => Number.isFinite(v) && v > 0);
 
-  const logAreas = activeAreas.map((v) => Math.log10(v));
-  const minLog = logAreas.length ? Math.min(...logAreas) : -2;
-  const maxLog = logAreas.length ? Math.max(...logAreas) : 1.2;
+  const logAreas = activeAreas.length
+    ? activeAreas.map((v) => Math.log10(v))
+    : [-2, 1.2];
+
+  const minLog = Math.min(...logAreas);
+  const maxLog = Math.max(...logAreas);
 
   const tickCandidates = [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 16];
-  const colorTickVals = tickCandidates
-    .filter((v) => v >= Math.pow(10, minLog) && v <= Math.pow(10, maxLog))
-    .map((v) => Math.log10(v));
+  const usableTicks = tickCandidates.filter(
+    (v) => v >= Math.pow(10, minLog) && v <= Math.pow(10, maxLog)
+  );
 
-  const colorTickText = tickCandidates
-    .filter((v) => v >= Math.pow(10, minLog) && v <= Math.pow(10, maxLog))
-    .map((v) => String(v));
+  const colorTickVals = usableTicks.map((v) => Math.log10(v));
+  const colorTickText = usableTicks.map((v) => String(v));
 
   const colorscale = [
     [0.0, "#011959"],
     [0.15, "#0A285C"],
-    [0.30, "#103F60"],
+    [0.3, "#103F60"],
     [0.45, "#1C5A62"],
-    [0.60, "#3C6D56"],
+    [0.6, "#3C6D56"],
     [0.75, "#687B3E"],
     [0.88, "#D29343"],
     [1.0, "#F8A17B"]
@@ -256,9 +255,7 @@ function renderIndiumPlot(rows) {
         x: group.map((row) => row.totalMgW),
         y: group.map((row) => row.efficiency),
         text: group.map((row) => {
-          const area = Number.isFinite(row.activeArea)
-            ? row.activeArea.toFixed(3)
-            : "n/a";
+          const area = Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a";
           return `Cell type: ${row.cellType}<br>Active area: ${area} cm²<br>Indium: ${row.totalMgW.toFixed(3)} mg/W`;
         }),
         hovertemplate:
@@ -269,7 +266,7 @@ function renderIndiumPlot(rows) {
           symbol: cellSymbols[cell],
           size: 12,
           opacity: 0.82,
-          color: group.map((row) => Math.log10(Math.max(row.activeArea, 0.01))),
+          color: group.map((row) => Math.log10(Math.max(row.activeArea || 0.01, 0.01))),
           coloraxis: "coloraxis",
           line: { color: "#1a1a1a", width: 0.8 }
         }
