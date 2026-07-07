@@ -194,6 +194,35 @@ function compareDatabaseValues(a, b) {
   });
 }
 
+function updateSortIndicators(tableWrapEl) {
+  const headers = tableWrapEl.querySelectorAll("th[data-sort]");
+  headers.forEach((th) => {
+    const key = th.dataset.sort;
+    th.textContent = th.textContent.replace(/[\u25b2\u25bc]\s*$/, "");
+
+    if (!databaseSort.key) return;
+
+    const keyMap = {
+      author: "author",
+      date: "date",
+      cell: "cell",
+      interlayer: "interlayer",
+      "interlayer-thickness": "interlayer-thickness",
+      rear: "rear",
+      "rear-thickness": "rear-thickness",
+      area: "area",
+      front: "front",
+      "front-thickness": "front-thickness",
+      efficiency: "efficiency",
+      certified: "certified",
+    };
+
+    if (keyMap[key] === key) {
+      th.textContent += databaseSort.direction === "asc" ? " ▲" : " ▼";
+    }
+  });
+}
+
 function uniqueSorted(values, comparator) {
   return [...new Set(values.filter((v) => String(v ?? "").trim() !== ""))].sort(comparator);
 }
@@ -293,6 +322,8 @@ function renderDatabaseTable() {
       return databaseSort.direction === "asc" ? cmp : -cmp;
     });
   }
+
+  updateSortIndicators(tableWrapEl);
   
   const rowsHtml = sortedRows
     .map((row) => {
