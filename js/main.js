@@ -2,6 +2,9 @@ const navButtons = document.querySelectorAll(".nav-btn");
 const views = document.querySelectorAll(".view");
 
 let tableData = [];
+let databaseRows = [];
+let databaseSort = { key: null, direction: "asc" };
+let databaseControlsBound = false;
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -12,6 +15,10 @@ navButtons.forEach((button) => {
     views.forEach((view) => {
       view.classList.toggle("active", view.id === target);
     });
+
+    if (target === "figures" && tableData.length) {
+      renderAllFigures();
+    }
   });
 });
 
@@ -20,7 +27,6 @@ function parseDate(value) {
 
   const s = String(value).trim();
 
-  // Handles DD/MM/YYYY
   const parts = s.split("/");
   if (parts.length === 3) {
     const [day, month, year] = parts.map(Number);
@@ -28,7 +34,6 @@ function parseDate(value) {
     return isNaN(d.getTime()) ? null : d;
   }
 
-  // Fallback for ISO dates or browser-parsable formats
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -74,19 +79,8 @@ function formatReference(value) {
   return escapeHtml(ref);
 }
 
-function getValue(row, ...keys) {
-  for (const key of keys) {
-    const value = row[key];
-    if (value !== undefined && value !== null && String(value).trim() !== "") {
-      return String(value).trim();
-    }
-  }
-  return "";
-}
-
 function normalizeCategory(value) {
   const text = String(value ?? "").trim();
-
   if (text === "") return "";
 
   const lower = text.toLowerCase();
@@ -98,50 +92,6 @@ function normalizeCategory(value) {
   return text;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function formatReference(value) {
-  const ref = String(value ?? "").trim();
-  if (!ref) return "";
-
-  if (/^https?:\/\//i.test(ref)) {
-    return `<a href="${escapeHtml(ref)}" target="_blank" rel="noopener noreferrer">Open</a>`;
-  }
-
-  if (/^10\.\d{4,9}\//i.test(ref)) {
-    const doiUrl = `https://doi.org/${ref}`;
-    return `<a href="${escapeHtml(doiUrl)}" target="_blank" rel="noopener noreferrer">Open</a>`;
-  }
-
-  return escapeHtml(ref);
-}
-
-function buildReferenceCell(row) {
-  const ref = row["Reference"] || row["Reference link"] || row["DOI"] || "";
-
-  if (!ref) return "";
-
-  if (/^https?:\/\//i.test(ref)) {
-    return `<a href="${ref}" target="_blank" rel="noopener noreferrer">Open</a>`;
-  }
-
-  if (/^10\.\d{4,9}\//i.test(ref)) {
-    return `<a href="https://doi.org/${ref}" target="_blank" rel="noopener noreferrer">Open</a>`;
-  }
-
-  return ref;
-}
-
-let databaseRows = [];
-let databaseSort = { key: null, direction: "asc" };
-
 function getDatabaseYear(row) {
   const yearRaw = getValue(row, "Year");
   if (yearRaw) return String(yearRaw).trim();
@@ -151,14 +101,21 @@ function getDatabaseYear(row) {
   return match ? match[0] : "";
 }
 
+function getDatabaseDateSortValue(row) {
+  const parsed = parseDate(getValue(row, "Publishing date", "Date"));
+  if (parsed) return parsed.getTime();
+
+  const year = getDatabaseYear(row);
+  const numericYear = Number(year);
+  return Number.isFinite(numericYear) ? numericYear : 0;
+}
+
 function getDatabaseCell(row) {
   return getValue(row, "Si Bottom cell type", "Cell");
 }
 
 function getDatabaseFrontTCO(row) {
-  return normalizeCategory(
-    getValue(row, "Front TCE (fTCE)", "Front TCO")
-  );
+  return normalizeCategory(getValue(row, "Front TCE (fTCE)", "Front TCO"));
 }
 
 function getDatabaseCertified(row) {
@@ -170,15 +127,11 @@ function getDatabaseCertified(row) {
 }
 
 function getDatabaseInterlayerTCE(row) {
-  return normalizeCategory(
-    getValue(row, "Interlayer TCE", "Inter-layer")
-  );
+  return normalizeCategory(getValue(row, "Interlayer TCE", "Inter-layer"));
 }
 
 function getDatabaseRearTCE(row) {
-  return normalizeCategory(
-    getValue(row, "Rear Electrode", "Rear electrode")
-  );
+  return normalizeCategory(getValue(row, "Rear Electrode", "Rear electrode"));
 }
 
 function compareDatabaseValues(a, b) {
@@ -188,39 +141,21 @@ function compareDatabaseValues(a, b) {
   const bNum = Number.isFinite(bn);
 
   if (aNum && bNum) return an - bn;
+
   return String(a ?? "").localeCompare(String(b ?? ""), undefined, {
     numeric: true,
     sensitivity: "base",
   });
 }
 
-function updateSortIndicators(tableWrapEl) {
-  const headers = tableWrapEl.querySelectorAll("th[data-sort]");
-  headers.forEach((th) => {
-    const key = th.dataset.sort;
-    th.textContent = th.textContent.replace(/[\u25b2\u25bc]\s*$/, "");
-
-    if (!databaseSort.key) return;
-
-    const keyMap = {
-      author: "author",
-      date: "date",
-      cell: "cell",
-      interlayer: "interlayer",
-      "interlayer-thickness": "interlayer-thickness",
-      rear: "rear",
-      "rear-thickness": "rear-thickness",
-      area: "area",
-      front: "front",
-      "front-thickness": "front-thickness",
-      efficiency: "efficiency",
-      certified: "certified",
-    };
-
-    if (keyMap[key] === key) {
-      th.textContent += databaseSort.direction === "asc" ? " ▲" : " ▼";
-    }
-  });
+function sortHeader(label, key) {
+  const arrow =
+    databaseSort.key === key
+      ? databaseSort.direction === "asc"
+        ? " ▲"
+        : " ▼"
+      : "";
+  return `${label}${arrow}`;
 }
 
 function uniqueSorted(values, comparator) {
@@ -311,37 +246,50 @@ function renderDatabaseTable() {
     tableWrapEl.innerHTML = "<p>No rows match the current filters.</p>";
     return;
   }
-  
-  const sortedRows = filteredRows.slice();
 
-  if (databaseSort.key) {
+  const sortedRows = filteredRows.slice();
+  const accessorMap = {
+    author: (row) => getValue(row, "Author"),
+    date: (row) => getDatabaseDateSortValue(row),
+    cell: (row) => getDatabaseCell(row),
+    interlayer: (row) => getDatabaseInterlayerTCE(row),
+    "interlayer-thickness": (row) =>
+      getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"),
+    rear: (row) => getDatabaseRearTCE(row),
+    "rear-thickness": (row) => getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"),
+    area: (row) => getValue(row, "Active Area (cm2)", "Cell active area"),
+    front: (row) => getDatabaseFrontTCO(row),
+    "front-thickness": (row) => getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"),
+    efficiency: (row) => getValue(row, "η (%)", "n tandem"),
+    certified: (row) => getDatabaseCertified(row),
+  };
+
+  if (databaseSort.key && accessorMap[databaseSort.key]) {
     sortedRows.sort((r1, r2) => {
-      const v1 = databaseSort.key(r1);
-      const v2 = databaseSort.key(r2);
+      const v1 = accessorMap[databaseSort.key](r1);
+      const v2 = accessorMap[databaseSort.key](r2);
       const cmp = compareDatabaseValues(v1, v2);
       return databaseSort.direction === "asc" ? cmp : -cmp;
     });
   }
 
-  updateSortIndicators(tableWrapEl);
-  
   const rowsHtml = sortedRows
     .map((row) => {
       return `
         <tr>
-          <th data-sort="author" style="cursor:pointer;">Author</th>
-          <th data-sort="date" style="cursor:pointer;">Date</th>
-          <th data-sort="cell" style="cursor:pointer;">Si Bottom cell type</th>
-          <th data-sort="interlayer" style="cursor:pointer;">Interlayer TCE</th>
-          <th data-sort="interlayer-thickness" style="cursor:pointer;">IL thickness (nm)</th>
-          <th data-sort="rear" style="cursor:pointer;">Rear Electrode</th>
-          <th data-sort="rear-thickness" style="cursor:pointer;">Rear TCE thickness (nm)</th>
-          <th data-sort="area" style="cursor:pointer;">Active Area (cm<sup>2</sup>)</th>
-          <th data-sort="front" style="cursor:pointer;">Front TCE (fTCE)</th>
-          <th data-sort="front-thickness" style="cursor:pointer;">fTCE thickness (nm)</th>
-          <th data-sort="efficiency" style="cursor:pointer;">η (%)</th>
-          <th data-sort="certified" style="cursor:pointer;">Certified (yes/no)</th>
-          <th>Reference (link to paper)</th>
+          <td>${escapeHtml(getValue(row, "Author"))}</td>
+          <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
+          <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
+          <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer"))}</td>
+          <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
+          <td>${escapeHtml(getValue(row, "Rear Electrode", "Rear electrode"))}</td>
+          <td>${escapeHtml(getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"))}</td>
+          <td>${escapeHtml(getValue(row, "Active Area (cm2)", "Cell active area"))}</td>
+          <td>${escapeHtml(getValue(row, "Front TCE (fTCE)", "Front TCO"))}</td>
+          <td>${escapeHtml(getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"))}</td>
+          <td>${escapeHtml(getValue(row, "η (%)", "n tandem"))}</td>
+          <td>${escapeHtml(getValue(row, "Certified (yes/no)", "Certified", "certified"))}</td>
+          <td>${formatReference(getValue(row, "Reference", "Reference link", "DOI"))}</td>
         </tr>
       `;
     })
@@ -351,18 +299,18 @@ function renderDatabaseTable() {
     <table class="data-table">
       <thead>
         <tr>
-          <th>Author</th>
-          <th>Date</th>
-          <th>Si Bottom cell type</th>
-          <th>Interlayer TCE</th>
-          <th>IL thickness (nm)</th>
-          <th>Rear Electrode</th>
-          <th>Rear TCE thickness (nm)</th>
-          <th>Active Area (cm<sup>2</sup>)</th>
-          <th>Front TCE (fTCE)</th>
-          <th>fTCE thickness (nm)</th>
-          <th>η (%)</th>
-          <th>Certified (yes/no)</th>
+          <th data-sort="author" style="cursor:pointer;">${sortHeader("Author", "author")}</th>
+          <th data-sort="date" style="cursor:pointer;">${sortHeader("Date", "date")}</th>
+          <th data-sort="cell" style="cursor:pointer;">${sortHeader("Si Bottom cell type", "cell")}</th>
+          <th data-sort="interlayer" style="cursor:pointer;">${sortHeader("Interlayer TCE", "interlayer")}</th>
+          <th data-sort="interlayer-thickness" style="cursor:pointer;">${sortHeader("IL thickness (nm)", "interlayer-thickness")}</th>
+          <th data-sort="rear" style="cursor:pointer;">${sortHeader("Rear Electrode", "rear")}</th>
+          <th data-sort="rear-thickness" style="cursor:pointer;">${sortHeader("Rear TCE thickness (nm)", "rear-thickness")}</th>
+          <th data-sort="area" style="cursor:pointer;">${sortHeader("Active Area (cm<sup>2</sup>)", "area")}</th>
+          <th data-sort="front" style="cursor:pointer;">${sortHeader("Front TCE (fTCE)", "front")}</th>
+          <th data-sort="front-thickness" style="cursor:pointer;">${sortHeader("fTCE thickness (nm)", "front-thickness")}</th>
+          <th data-sort="efficiency" style="cursor:pointer;">${sortHeader("η (%)", "efficiency")}</th>
+          <th data-sort="certified" style="cursor:pointer;">${sortHeader("Certified (yes/no)", "certified")}</th>
           <th>Reference (link to paper)</th>
         </tr>
       </thead>
@@ -371,40 +319,27 @@ function renderDatabaseTable() {
       </tbody>
     </table>
   `;
-}
 
   tableWrapEl.querySelectorAll("th[data-sort]").forEach((th) => {
     th.addEventListener("click", () => {
       const sortKey = th.dataset.sort;
 
-      const keyMap = {
-        author: (row) => getValue(row, "Author"),
-        date: (row) => getValue(row, "Publishing date", "Date", "Year"),
-        cell: (row) => getDatabaseCell(row),
-        interlayer: (row) => getDatabaseInterlayerTCE(row),
-        "interlayer-thickness": (row) =>
-          getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"),
-        rear: (row) => getDatabaseRearTCE(row),
-        "rear-thickness": (row) => getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"),
-        area: (row) => getValue(row, "Active Area (cm2)", "Cell active area"),
-        front: (row) => getDatabaseFrontTCO(row),
-        "front-thickness": (row) => getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"),
-        efficiency: (row) => getValue(row, "η (%)", "n tandem"),
-        certified: (row) => getDatabaseCertified(row),
-      };
-
-      if (databaseSort.key === keyMap[sortKey]) {
+      if (databaseSort.key === sortKey) {
         databaseSort.direction = databaseSort.direction === "asc" ? "desc" : "asc";
       } else {
-        databaseSort.key = keyMap[sortKey];
+        databaseSort.key = sortKey;
         databaseSort.direction = "asc";
       }
 
       renderDatabaseTable();
     });
   });
+}
 
 function bindDatabaseControls() {
+  if (databaseControlsBound) return;
+  databaseControlsBound = true;
+
   const ids = [
     "db-search",
     "db-certified",
@@ -439,6 +374,8 @@ function bindDatabaseControls() {
     if (interlayer) interlayer.value = "all";
     if (rear) rear.value = "all";
 
+    databaseSort.key = null;
+    databaseSort.direction = "asc";
     renderDatabaseTable();
   });
 }
@@ -450,38 +387,22 @@ function renderDatabase(rows) {
   renderDatabaseTable();
 }
 
-function bindDatabaseControls() {
-  const ids = ["db-search", "db-certified", "db-year", "db-cell", "db-front"];
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("input", renderDatabaseTable);
-    el.addEventListener("change", renderDatabaseTable);
-  });
+function renderAllFigures() {
+  if (typeof renderFrontTcoPlot === "function") {
+    renderFrontTcoPlot(tableData);
+  }
 
-  document.getElementById("db-reset")?.addEventListener("click", () => {
-    const search = document.getElementById("db-search");
-    const certified = document.getElementById("db-certified");
-    const year = document.getElementById("db-year");
-    const cell = document.getElementById("db-cell");
-    const front = document.getElementById("db-front");
-
-    if (search) search.value = "";
-    if (certified) certified.value = "all";
-    if (year) year.value = "all";
-    if (cell) cell.value = "all";
-    if (front) front.value = "all";
-
-    renderDatabaseTable();
-  });
+  if (typeof renderIndiumPlot === "function") {
+    renderIndiumPlot(tableData);
+  }
 }
 
-function renderDatabase(rows) {
-  databaseRows = rows.slice();
-  populateDatabaseFilters(databaseRows);
-  bindDatabaseControls();
-  renderDatabaseTable();
-}
+document.addEventListener("change", (event) => {
+  if (event.target && event.target.id === "certified-only") {
+    renderAllFigures();
+  }
+});
+
 async function loadData() {
   try {
     tableData = await loadCSV("data/tandem.csv");
@@ -503,21 +424,5 @@ async function loadData() {
     }
   }
 }
-
-function renderAllFigures() {
-  if (typeof renderFrontTcoPlot === "function") {
-    renderFrontTcoPlot(tableData);
-  }
-
-  if (typeof renderIndiumPlot === "function") {
-    renderIndiumPlot(tableData);
-  }
-}
-
-document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "certified-only") {
-    renderAllFigures();
-  }
-});
 
 loadData();
