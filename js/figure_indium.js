@@ -18,22 +18,13 @@ function renderIndiumPlot(rows) {
       .replace(/\s+/g, " ");
 
   const classifyCellType = (row) => {
-    const raw = normalizeText(
-      row["Cell"] ?? row["Si Bottom cell type"] ?? ""
-    ).toLowerCase();
+    const raw = normalizeText(row["Cell"] ?? row["Si Bottom cell type"] ?? "").toLowerCase();
 
-    if (
-      raw.includes("shj") ||
-      raw.includes("heterojunction") ||
-      raw.includes("hjt")
-    ) {
+    if (raw.includes("shj") || raw.includes("heterojunction") || raw.includes("hjt")) {
       return "SHJ";
     }
 
-    if (
-      raw.includes("topcon") ||
-      raw.includes("polo")
-    ) {
+    if (raw.includes("topcon") || raw.includes("polo")) {
       return "TOPCon/POLO";
     }
 
@@ -66,11 +57,7 @@ function renderIndiumPlot(rows) {
   const plotRows = rows
     .map((row) => {
       const computed = PVDataIndium.computeRow(row);
-      if (
-        !computed ||
-        computed.totalMgW === null ||
-        !Number.isFinite(computed.efficiency)
-      ) {
+      if (!computed || computed.totalMgW === null || !Number.isFinite(computed.efficiency)) {
         return null;
       }
 
@@ -103,20 +90,21 @@ function renderIndiumPlot(rows) {
   };
 
   const colorscale = [
-    [0.0, "#011959"],
-    [0.15, "#0A285C"],
-    [0.3, "#103F60"],
-    [0.45, "#1C5A62"],
-    [0.6, "#3C6D56"],
-    [0.75, "#687B3E"],
-    [0.88, "#D29343"],
-    [1.0, "#F8A17B"]
+    [0.00, "#435887"],
+    [0.10, "#4A6B86"],
+    [0.20, "#527F8A"],
+    [0.35, "#5F9583"],
+    [0.50, "#78A47B"],
+    [0.65, "#9CAF82"],
+    [0.80, "#C7B89B"],
+    [0.90, "#D8C4C4"],
+    [1.00, "#E4CCE2"]
   ];
 
-  const colorMin = Math.log10(0.01);
-  const colorMax = Math.log10(16);
+  const colorMin = -2;
+  const colorMax = 1.2;
 
-  const tickValues = [0.01, 0.1, 1, 10].map((v) => Math.log10(v));
+  const tickValues = [-2, -1, 0, 1];
   const tickText = ["10⁻²", "10⁻¹", "10⁰", "10¹"];
 
   const legendTraces = cellOrder
@@ -182,7 +170,7 @@ function renderIndiumPlot(rows) {
   const layout = {
     autosize: true,
     height: 540,
-    margin: { l: 72, r: 28, t: 22, b: 62 },
+    margin: { l: 72, r: 35, t: 92, b: 62 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     font: {
@@ -202,7 +190,7 @@ function renderIndiumPlot(rows) {
     },
     yaxis: {
       title: "Power conversion efficiency (%)",
-      range: [15, 35],
+      range: [15, 35.75],
       dtick: 5,
       showline: true,
       linecolor: "#222222",
@@ -245,7 +233,7 @@ function renderIndiumPlot(rows) {
         x0: 0.064,
         x1: 0.064,
         y0: 15,
-        y1: 35,
+        y1: 35.75,
         line: { color: "#555555", width: 1, dash: "dash" }
       },
       {
@@ -253,14 +241,15 @@ function renderIndiumPlot(rows) {
         x0: 1.159,
         x1: 1.159,
         y0: 15,
-        y1: 35,
+        y1: 35.75,
         line: { color: "#555555", width: 1, dash: "dash" }
       }
     ],
     annotations: [
       {
         x: 0.064,
-        y: 35,
+        y: 35.45,
+        yref: "y",
         text: "0.064 mg W⁻¹ (3 TW yr⁻¹)",
         showarrow: true,
         arrowhead: 0,
@@ -271,13 +260,16 @@ function renderIndiumPlot(rows) {
         arrowwidth: 1,
         font: { size: 14, color: "#111111" },
         align: "left",
+        xanchor: "left",
+        yanchor: "bottom",
         bgcolor: "rgba(255,255,255,0.95)",
         bordercolor: "rgba(0,0,0,0)",
         borderpad: 2
       },
       {
         x: 1.159,
-        y: 35,
+        y: 35.45,
+        yref: "y",
         text: "1.159 mg W⁻¹ (0.17 TW yr⁻¹)",
         showarrow: true,
         arrowhead: 0,
@@ -288,26 +280,11 @@ function renderIndiumPlot(rows) {
         arrowwidth: 1,
         font: { size: 14, color: "#111111" },
         align: "left",
+        xanchor: "left",
+        yanchor: "bottom",
         bgcolor: "rgba(255,255,255,0.95)",
         bordercolor: "rgba(0,0,0,0)",
         borderpad: 2
-      },
-      {
-        x: 0.03,
-        y: 0.08,
-        xref: "paper",
-        yref: "paper",
-        text:
-          "TW/yr conversion:<br>" +
-          "0.064 mg W⁻¹ → 3 TW yr⁻¹<br>" +
-          "1.159 mg W⁻¹ → 0.17 TW yr⁻¹",
-        showarrow: false,
-        align: "left",
-        bgcolor: "rgba(255,255,255,0.95)",
-        bordercolor: "#222222",
-        borderwidth: 1,
-        borderpad: 6,
-        font: { size: 12, color: "#111111" }
       }
     ]
   };
