@@ -452,6 +452,9 @@ function renderAllFigures() {
   if (typeof renderViolinGroupsPlot === "function") {
   renderViolinGroupsPlot(tableData);
   }
+  if (typeof renderViolinThicknessPlot === "function") {
+  renderViolinThicknessPlot(tableData);
+  }
 }
 
 document.addEventListener("change", (event) => {
