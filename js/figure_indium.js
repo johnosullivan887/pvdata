@@ -258,10 +258,12 @@ function renderIndiumPlot(rows) {
           const area = Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a";
           return `Cell type: ${row.cellType}<br>Active area: ${area} cm²<br>Indium: ${row.totalMgW.toFixed(3)} mg/W`;
         }),
-        hovertemplate:
-          "<b>%{x:.3f} mg/W</b><br>" +
-          "Efficiency: %{y:.2f}%<br>" +
-          "%{text}<extra></extra>",
+      hovertemplate:
+        "<b>%{x:.3f} mg/W</b><br>" +
+        "Efficiency: %{y:.2f}%<br>" +
+        "Author: %{customdata[0]}<br>" +
+        "Year: %{customdata[1]}<br>" +
+        "%{text}<extra></extra>"
         marker: {
           symbol: cellSymbols[cell],
           size: 12,
@@ -270,6 +272,11 @@ function renderIndiumPlot(rows) {
           coloraxis: "coloraxis",
           line: { color: "#1a1a1a", width: 0.8 }
         }
+        customdata: group.map((row) => [
+        getValue(row, "Author"),
+        getDatabaseYear(row),
+        getPaperUrl(row)
+      ]),
       };
     });
 
@@ -409,4 +416,6 @@ function renderIndiumPlot(rows) {
     responsive: true,
     displayModeBar: true
   });
+  plotDiv.style.cursor = "pointer";
+  bindPaperOpenBehavior(plotDiv);
 }
