@@ -56,7 +56,8 @@ function renderIndiumPlot(rows) {
 
   const plotRows = rows
     .map((row) => {
-      const computed = PVDataIndium.computeRow(row);
+      const materialUtilisation = Number(document.getElementById("indium-util-eff")?.value ?? 80) / 100;
+      const computed = PVDataIndium.computeRow(row, materialUtilisation);
       if (!computed || computed.totalMgW === null || !Number.isFinite(computed.efficiency)) {
         return null;
       }
@@ -110,8 +111,8 @@ function renderIndiumPlot(rows) {
         </label>
 
         <label style="display:flex; flex-direction:column; gap:6px; font-size:14px;">
-          <span>Minimum efficiency ≥ <strong id="indium-eff-value">15.0</strong>%</span>
-          <input type="range" id="indium-eff-min" min="15" max="35.75" step="0.1" value="15" />
+          <span>Material utilisation efficiency: <strong id="indium-util-value">80</strong>%</span>
+          <input type="range" id="indium-util-eff" min="5" max="100" step="1" value="80" />
         </label>
       </div>
 
@@ -160,12 +161,12 @@ function renderIndiumPlot(rows) {
       controls.querySelector("#indium-reset")?.addEventListener("click", () => {
         const certified = controls.querySelector("#indium-certified-only");
         const year = controls.querySelector("#indium-year-max");
-        const eff = controls.querySelector("#indium-eff-min");
+        const util = controls.querySelector("#indium-util-eff");
         const cellBoxes = controls.querySelectorAll(".indium-cell-toggle");
 
         if (certified) certified.checked = false;
         if (year) year.value = String(maxYearAvailable);
-        if (eff) eff.value = "15";
+        if (util) util.value = "80";
         cellBoxes.forEach((box) => {
           box.checked = true;
         });
@@ -180,6 +181,11 @@ function renderIndiumPlot(rows) {
   const effMinEl = document.getElementById("indium-eff-min");
   const yearValueEl = document.getElementById("indium-year-value");
   const effValueEl = document.getElementById("indium-eff-value");
+  const utilValueEl = document.getElementById("indium-util-value");
+  
+  if (utilValueEl && util) {
+    utilValueEl.textContent = util.value;
+  }
 
   if (yearMaxEl) {
     yearMaxEl.min = String(minYearAvailable);
@@ -212,7 +218,6 @@ function renderIndiumPlot(rows) {
   const visibleRows = plotRows.filter((row) => {
     if (certifiedOnly && row.certified !== "yes") return false;
     if (Number.isFinite(row.yearNum) && row.yearNum > maxYear) return false;
-    if (row.efficiency < minEfficiency) return false;
     if (!enabledCells.has(row.cellType)) return false;
     return true;
   });
