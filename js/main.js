@@ -181,6 +181,19 @@ function getDatabaseRearTCE(row) {
   );
 }
 
+function compareDatabaseValues(a, b) {
+  const an = Number(a);
+  const bn = Number(b);
+  const aNum = Number.isFinite(an);
+  const bNum = Number.isFinite(bn);
+
+  if (aNum && bNum) return an - bn;
+  return String(a ?? "").localeCompare(String(b ?? ""), undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
 function uniqueSorted(values, comparator) {
   return [...new Set(values.filter((v) => String(v ?? "").trim() !== ""))].sort(comparator);
 }
