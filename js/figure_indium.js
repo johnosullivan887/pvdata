@@ -61,10 +61,8 @@ function renderIndiumPlot(rows) {
         return null;
       }
 
-      const yearNum = Number(
-        String(computed.year || "").match(/(19|20)\d{2}/)?.[0] ??
-          (Number.isFinite(computed.date?.getFullYear?.()) ? computed.date.getFullYear() : NaN)
-      );
+      const yearMatch = String(computed.year || "").match(/(19|20)\d{2}/);
+      const yearNum = yearMatch ? Number(yearMatch[0]) : NaN;
 
       return {
         ...computed,
@@ -107,12 +105,12 @@ function renderIndiumPlot(rows) {
         </label>
 
         <label style="display:flex; flex-direction:column; gap:6px; font-size:14px;">
-          <span>Show papers from year &le; <strong id="indium-year-value"></strong></span>
-          <input type="range" id="indium-year-min" min="${minYearAvailable}" max="${maxYearAvailable}" step="1" value="${minYearAvailable}" />
+          <span>Show papers from year ≤ <strong id="indium-year-value"></strong></span>
+          <input type="range" id="indium-year-max" min="${minYearAvailable}" max="${maxYearAvailable}" step="1" value="${maxYearAvailable}" />
         </label>
 
         <label style="display:flex; flex-direction:column; gap:6px; font-size:14px;">
-          <span>Minimum efficiency &ge; <strong id="indium-eff-value">15.0</strong>%</span>
+          <span>Minimum efficiency ≥ <strong id="indium-eff-value">15.0</strong>%</span>
           <input type="range" id="indium-eff-min" min="15" max="35.75" step="0.1" value="15" />
         </label>
       </div>
@@ -161,12 +159,12 @@ function renderIndiumPlot(rows) {
 
       controls.querySelector("#indium-reset")?.addEventListener("click", () => {
         const certified = controls.querySelector("#indium-certified-only");
-        const year = controls.querySelector("#indium-year-min");
+        const year = controls.querySelector("#indium-year-max");
         const eff = controls.querySelector("#indium-eff-min");
         const cellBoxes = controls.querySelectorAll(".indium-cell-toggle");
 
         if (certified) certified.checked = false;
-        if (year) year.value = String(minYearAvailable);
+        if (year) year.value = String(maxYearAvailable);
         if (eff) eff.value = "15";
         cellBoxes.forEach((box) => {
           box.checked = true;
@@ -178,23 +176,23 @@ function renderIndiumPlot(rows) {
   }
 
   const certifiedOnlyEl = document.getElementById("indium-certified-only");
-  const yearMinEl = document.getElementById("indium-year-min");
+  const yearMaxEl = document.getElementById("indium-year-max");
   const effMinEl = document.getElementById("indium-eff-min");
   const yearValueEl = document.getElementById("indium-year-value");
   const effValueEl = document.getElementById("indium-eff-value");
 
-  if (yearMinEl) {
-    yearMinEl.min = String(minYearAvailable);
-    yearMinEl.max = String(maxYearAvailable);
-    if (!yearMinEl.value) yearMinEl.value = String(minYearAvailable);
+  if (yearMaxEl) {
+    yearMaxEl.min = String(minYearAvailable);
+    yearMaxEl.max = String(maxYearAvailable);
+    if (!yearMaxEl.value) yearMaxEl.value = String(maxYearAvailable);
   }
 
-  if (effMinEl) {
-    if (!effMinEl.value) effMinEl.value = "15";
+  if (effMinEl && !effMinEl.value) {
+    effMinEl.value = "15";
   }
 
-  if (yearValueEl && yearMinEl) {
-    yearValueEl.textContent = yearMinEl.value;
+  if (yearValueEl && yearMaxEl) {
+    yearValueEl.textContent = yearMaxEl.value;
   }
 
   if (effValueEl && effMinEl) {
@@ -202,7 +200,7 @@ function renderIndiumPlot(rows) {
   }
 
   const certifiedOnly = certifiedOnlyEl?.checked ?? false;
-  const minYear = Number(yearMinEl?.value ?? minYearAvailable);
+  const maxYear = Number(yearMaxEl?.value ?? maxYearAvailable);
   const minEfficiency = Number(effMinEl?.value ?? 15);
 
   const enabledCells = new Set(
@@ -213,7 +211,7 @@ function renderIndiumPlot(rows) {
 
   const visibleRows = plotRows.filter((row) => {
     if (certifiedOnly && row.certified !== "yes") return false;
-    if (Number.isFinite(row.yearNum) && row.yearNum < minYear) return false;
+    if (Number.isFinite(row.yearNum) && row.yearNum > maxYear) return false;
     if (row.efficiency < minEfficiency) return false;
     if (!enabledCells.has(row.cellType)) return false;
     return true;
