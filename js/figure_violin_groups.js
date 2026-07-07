@@ -30,6 +30,23 @@ function renderViolinGroupsPlot(rows) {
     return Number.isFinite(n) ? n : null;
   };
 
+  const getEfficiency = (row) =>
+    toNumber(getValue(row, "n tandem", "η (%)", "Efficiency"));
+
+  const getFrontRaw = (row) => {
+    const raw = normalize(getValue(row, "Front TCO"));
+    if (!raw) return "";
+    if (raw.toLowerCase() === "not clear") return "Not clear";
+    return raw;
+  };
+
+  const getInterRaw = (row) => {
+    const raw = normalize(getValue(row, "Inter-layer", "Interlayer TCE"));
+    if (!raw || raw.toLowerCase() === "nan" || raw.toLowerCase() === "none") return "No layer";
+    if (raw.toLowerCase() === "not clear") return "Not clear";
+    return raw;
+  };
+
   const classifyRear = (val) => {
     if (val === null || val === undefined || String(val).trim() === "") return "Missing";
 
@@ -39,15 +56,30 @@ function renderViolinGroupsPlot(rows) {
     if (totalNotclear.has(s)) return "Not clear";
 
     const totalMetal = new Set([
-      "Ag", "Al", "Ag/Al", "Al/Ag", "Al/Ti/Ag",
-      "Ti/Pd/Ag/Pt", "Ti/Pd/Ag", "Cr/Ag", "Cr/Pd/Ag/Ag/Al"
+      "Ag",
+      "Al",
+      "Ag/Al",
+      "Al/Ag",
+      "Al/Ti/Ag",
+      "Ti/Pd/Ag/Pt",
+      "Ti/Pd/Ag",
+      "Cr/Ag",
+      "Cr/Pd/Ag/Ag/Al"
     ]);
     if (totalMetal.has(s)) return "No TCE";
 
     const totalITO = new Set([
-      "ITO/Ag", "ITO/Al", "ITO/Ag/Al", "ITO/Al/Ag", "ITO/Au",
-      "ITO/SiO2/Ag", "ITO/Silica/Ag", "ITO/SiO2-NP/Ag",
-      "ITO/MgF2/Ni/Al", "ITO/MgFx/Ag", "ITO/meso-Al2O3/Ag"
+      "ITO/Ag",
+      "ITO/Al",
+      "ITO/Ag/Al",
+      "ITO/Al/Ag",
+      "ITO/Au",
+      "ITO/SiO2/Ag",
+      "ITO/Silica/Ag",
+      "ITO/SiO2-NP/Ag",
+      "ITO/MgF2/Ni/Al",
+      "ITO/MgFx/Ag",
+      "ITO/meso-Al2O3/Ag"
     ]);
     if (totalITO.has(s)) return "ITO";
 
@@ -58,8 +90,14 @@ function renderViolinGroupsPlot(rows) {
     if (totalIZrO.has(s)) return "IZrO";
 
     const otherIn = new Set([
-      "IWO/Ag", "ICO/Ag", "InOx:H/Ag", "InOx/Ag", "Doped-InOx/Ag",
-      "Doped-InOx", "Doped-InOx/Ag/SiO2/Ag", "Doped-InOx:H/Ag/SiOx/Ag"
+      "IWO/Ag",
+      "ICO/Ag",
+      "InOx:H/Ag",
+      "InOx/Ag",
+      "Doped-InOx/Ag",
+      "Doped-InOx",
+      "Doped-InOx/Ag/SiO2/Ag",
+      "Doped-InOx:H/Ag/SiOx/Ag"
     ]);
     if (otherIn.has(s)) return "Other InO$_x$";
 
@@ -69,22 +107,10 @@ function renderViolinGroupsPlot(rows) {
     return "Other";
   };
 
-  const getEfficiency = (row) =>
-    toNumber(getValue(row, "n tandem", "η (%)", "Efficiency"));
-
-  const getFrontRaw = (row) => normalize(getValue(row, "Front TCO"));
-
-  const getInterRaw = (row) => {
-    const raw = normalize(getValue(row, "Inter-layer", "Interlayer TCE"));
-    if (!raw || raw.toLowerCase() === "nan" || raw.toLowerCase() === "none") return "No layer";
-    if (raw.toLowerCase() === "not clear") return "Not clear";
-    return raw;
-  };
-
   const getRearCat = (row) =>
     classifyRear(getValue(row, "Rear electrode", "Rear Electrode"));
 
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? true;
+  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
 
   const cleanRows = rows
     .map((row) => ({
@@ -158,9 +184,15 @@ function renderViolinGroupsPlot(rows) {
     {
       label: "Si-based TJ",
       values: [
-        "a*-Si:H(n)", "nc-Si:H(p)", "nc-Si:H(n)", "a-Si:H(p+)",
-        "nc-Si:H(n/p)", "nc-Si:H(p/n)", "poly-Si(n/p)",
-        "nc-Si(n+)", "uc-Si:H(p/n)"
+        "a*-Si:H(n)",
+        "nc-Si:H(p)",
+        "nc-Si:H(n)",
+        "a-Si:H(p+)",
+        "nc-Si:H(n/p)",
+        "nc-Si:H(p/n)",
+        "poly-Si(n/p)",
+        "nc-Si(n+)",
+        "uc-Si:H(p/n)"
       ],
       color: colors[8]
     }
@@ -192,23 +224,13 @@ function renderViolinGroupsPlot(rows) {
   const gap = 1.0;
   const sepGap = 1.8;
 
-  const Nf = frontCats.length;
-  const Ni = interCats.length;
-  const Nr = rearCats.length;
-
-  const frontPositions = Array.from({ length: Nf }, (_, i) => i * gap);
-  const interPositions = Array.from({ length: Ni }, (_, j) => frontPositions[frontPositions.length - 1] + sepGap + j * gap);
-  const rearPositions = Array.from({ length: Nr }, (_, k) => interPositions[interPositions.length - 1] + sepGap + k * gap);
+  const frontPositions = Array.from({ length: frontCats.length }, (_, i) => i * gap);
+  const middleStart = frontPositions[frontPositions.length - 1] + sepGap;
+  const interPositions = Array.from({ length: interCats.length }, (_, j) => middleStart + j * gap);
+  const rearStart = interPositions[interPositions.length - 1] + sepGap;
+  const rearPositions = Array.from({ length: rearCats.length }, (_, k) => rearStart + k * gap);
 
   const positions = frontPositions.concat(interPositions, rearPositions);
-
-  const colorMap = {
-    "TCO": colors[0],
-    "Interconnection-free layer": colors[3],
-    "Tunnelling junction": colors[8],
-    "Not disclosed": colors[6],
-    "TCE-free rear electrode": colors[4]
-  };
 
   const legendTraces = [
     { name: "TCO", color: colors[0] },
@@ -373,8 +395,7 @@ function renderViolinGroupsPlot(rows) {
       xanchor: "center",
       yanchor: "top",
       bordercolor: "#000000",
-      borderwidth: 1,
-      frameon: true
+      borderwidth: 1
     }
   };
 
