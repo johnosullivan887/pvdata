@@ -26,7 +26,7 @@ function renderFrontTcoPlot(rows) {
 
     const efficiency = base.getEfficiency(row);
     const rawLabel = tax.normalizeText(base.resolveField(row, ["Front TCO", "Front TCE (fTCE)"]));
-    const family = tax.familyFrom...(rawLabel);
+    const family = tax.familyFromFront(rawLabel);
 
     if (!Number.isFinite(efficiency) || !family) return null;
 
