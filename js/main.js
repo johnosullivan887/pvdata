@@ -79,6 +79,43 @@ function formatReference(value) {
   return escapeHtml(ref);
 }
 
+function getPaperUrl(row) {
+  const ref = getValue(row, "Reference", "Reference link", "DOI");
+  if (!ref) return "";
+
+  if (/^https?:\/\//i.test(ref)) return ref;
+
+  if (/^10\.\d{4,9}\//i.test(ref)) {
+    return `https://doi.org/${ref}`;
+  }
+
+  return "";
+}
+
+function getPaperHighlight(row) {
+  return getValue(row, "Highlight");
+}
+
+function bindPaperOpenBehavior(plotDiv) {
+  if (!plotDiv || plotDiv.dataset.paperBound === "true") return;
+
+  plotDiv.dataset.paperBound = "true";
+
+  let lastPaperUrl = "";
+
+  plotDiv.on("plotly_click", (eventData) => {
+    const point = eventData?.points?.[0];
+    const url = point?.customdata?.[2] || "";
+    lastPaperUrl = url;
+  });
+
+  plotDiv.addEventListener("dblclick", () => {
+    if (lastPaperUrl) {
+      window.open(lastPaperUrl, "_blank", "noopener,noreferrer");
+    }
+  });
+} 
+
 function normalizeCategory(value) {
   const text = String(value ?? "").trim();
   if (text === "") return "";
