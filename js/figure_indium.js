@@ -166,14 +166,7 @@ function renderIndiumPlot(rows) {
         y1: 35,
         line: { color: "#555555", width: 1, dash: "dash" }
       },
-      {
-        type: "line",
-        x0: 0.02,
-        x1: 0.02,
-        y0: 34.7,
-        y1: 37.2,
-        line: { color: "#f2d400", width: 6 }
-      }
+
     ],
     annotations: [
       {
@@ -210,17 +203,7 @@ function renderIndiumPlot(rows) {
         bordercolor: "rgba(0,0,0,0)",
         borderpad: 2
       },
-      {
-        x: 0.0,
-        y: 1.03,
-        xref: "paper",
-        yref: "paper",
-        text: "<b>a</b>",
-        showarrow: false,
-        font: { size: 26, color: "#111111" },
-        xanchor: "left",
-        yanchor: "top"
-      }
+     
     ]
   };
 
