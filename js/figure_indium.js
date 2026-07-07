@@ -18,7 +18,9 @@ function renderIndiumPlot(rows) {
       .replace(/\s+/g, " ");
 
   const classifyCellType = (row) => {
-    const raw = normalizeText(row["Cell"] ?? row["Si Bottom cell type"] ?? "").toLowerCase();
+    const raw = normalizeText(
+      row["Cell"] ?? row["Si Bottom cell type"] ?? ""
+    ).toLowerCase();
 
     if (raw.includes("shj") || raw.includes("heterojunction") || raw.includes("hjt")) {
       return "SHJ";
@@ -54,29 +56,21 @@ function renderIndiumPlot(rows) {
     return a * Math.pow(mgW, b);
   };
 
-  const plotRows = rows
-    .map((row) => {
-      const materialUtilisation = Number(document.getElementById("indium-util-eff")?.value ?? 80) / 100;
-      const computed = PVDataIndium.computeRow(row, materialUtilisation);
-      if (!computed || computed.totalMgW === null || !Number.isFinite(computed.efficiency)) {
-        return null;
-      }
+  const getRowYear = (row) => {
+    if (typeof PVDataIndium.getYear === "function") {
+      const yearText = String(PVDataIndium.getYear(row) ?? "").trim();
+      const match = yearText.match(/(19|20)\d{2}/);
+      if (match) return Number(match[0]);
+    }
 
-      const yearMatch = String(computed.year || "").match(/(19|20)\d{2}/);
-      const yearNum = yearMatch ? Number(yearMatch[0]) : NaN;
+    const fallback = String(row["Publishing date"] ?? row["Date"] ?? row["Year"] ?? "").trim();
+    const match = fallback.match(/(19|20)\d{2}/);
+    return match ? Number(match[0]) : NaN;
+  };
 
-      return {
-        ...computed,
-        cellType: classifyCellType(row),
-        yearNum,
-        twYr: twYrFromMgW(computed.totalMgW)
-      };
-    })
-    .filter(Boolean);
-
-  const yearValues = plotRows.map((row) => row.yearNum).filter((v) => Number.isFinite(v));
-  const minYearAvailable = yearValues.length ? Math.min(...yearValues) : 2015;
-  const maxYearAvailable = yearValues.length ? Math.max(...yearValues) : 2026;
+  const yearValuesRaw = rows.map(getRowYear).filter((v) => Number.isFinite(v));
+  const minYearAvailable = yearValuesRaw.length ? Math.min(...yearValuesRaw) : 2015;
+  const maxYearAvailable = yearValuesRaw.length ? Math.max(...yearValuesRaw) : 2026;
 
   const controlsId = "indium-controls";
   let controls = document.getElementById(controlsId);
@@ -178,14 +172,9 @@ function renderIndiumPlot(rows) {
 
   const certifiedOnlyEl = document.getElementById("indium-certified-only");
   const yearMaxEl = document.getElementById("indium-year-max");
-  const effMinEl = document.getElementById("indium-eff-min");
+  const utilEl = document.getElementById("indium-util-eff");
   const yearValueEl = document.getElementById("indium-year-value");
-  const effValueEl = document.getElementById("indium-eff-value");
   const utilValueEl = document.getElementById("indium-util-value");
-  
-  if (utilValueEl && util) {
-    utilValueEl.textContent = util.value;
-  }
 
   if (yearMaxEl) {
     yearMaxEl.min = String(minYearAvailable);
@@ -193,21 +182,46 @@ function renderIndiumPlot(rows) {
     if (!yearMaxEl.value) yearMaxEl.value = String(maxYearAvailable);
   }
 
-  if (effMinEl && !effMinEl.value) {
-    effMinEl.value = "15";
+  if (utilEl) {
+    if (!utilEl.value) utilEl.value = "80";
   }
 
   if (yearValueEl && yearMaxEl) {
     yearValueEl.textContent = yearMaxEl.value;
   }
 
-  if (effValueEl && effMinEl) {
-    effValueEl.textContent = Number(effMinEl.value).toFixed(1);
+  if (utilValueEl && utilEl) {
+    utilValueEl.textContent = utilEl.value;
   }
 
+  const materialUtilisation = Number(utilEl?.value ?? 80) / 100;
   const certifiedOnly = certifiedOnlyEl?.checked ?? false;
   const maxYear = Number(yearMaxEl?.value ?? maxYearAvailable);
-  const minEfficiency = Number(effMinEl?.value ?? 15);
+
+  const plotRows = rows
+    .map((row) => {
+      const computed = PVDataIndium.computeRow(row, materialUtilisation);
+      if (!computed || computed.totalMgW === null || !Number.isFinite(computed.efficiency)) {
+        return null;
+      }
+
+      const dateYear = computed.date instanceof Date && !isNaN(computed.date.getTime())
+        ? computed.date.getFullYear()
+        : NaN;
+
+      const yearMatch = String(computed.year || "").match(/(19|20)\d{2}/);
+      const yearNum = Number.isFinite(dateYear)
+        ? dateYear
+        : (yearMatch ? Number(yearMatch[0]) : NaN);
+
+      return {
+        ...computed,
+        cellType: computed.cellType || classifyCellType(row),
+        yearNum,
+        twYr: twYrFromMgW(computed.totalMgW)
+      };
+    })
+    .filter(Boolean);
 
   const enabledCells = new Set(
     Array.from(document.querySelectorAll(".indium-cell-toggle"))
@@ -256,8 +270,17 @@ function renderIndiumPlot(rows) {
   const tickValues = [-2, -1, 0, 1];
   const tickText = ["10⁻²", "10⁻¹", "10⁰", "10¹"];
 
-  const legendTraces = cellOrder
-    .filter((cell) => visibleRows.some((row) => row.cellType === cell))
+  const categoryCounts = visibleRows.reduce((acc, row) => {
+    acc[row.cellType] = (acc[row.cellType] || 0) + 1;
+    return acc;
+  }, {});
+
+  const orderedCategories = Object.keys(categoryCounts).sort((a, b) => {
+    const diff = categoryCounts[b] - categoryCounts[a];
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
+
+  const legendTraces = orderedCategories
     .map((cell) => ({
       type: "scatter",
       mode: "markers",
@@ -277,44 +300,42 @@ function renderIndiumPlot(rows) {
       }
     }));
 
-  const dataTraces = cellOrder
-    .filter((cell) => visibleRows.some((row) => row.cellType === cell))
-    .map((cell) => {
-      const group = visibleRows.filter((row) => row.cellType === cell);
+  const dataTraces = orderedCategories.map((cell) => {
+    const group = visibleRows.filter((row) => row.cellType === cell);
 
-      return {
-        type: "scatter",
-        mode: "markers",
-        name: cell,
-        showlegend: false,
-        x: group.map((row) => row.totalMgW),
-        y: group.map((row) => row.efficiency),
-        customdata: group.map((row) => [
-          row.author,
-          row.year,
-          row.paperUrl,
-          row.cellType,
-          Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a",
-          Number.isFinite(row.twYr) ? row.twYr : null
-        ]),
-        marker: {
-          symbol: cellSymbols[cell],
-          size: 12,
-          opacity: 0.84,
-          color: group.map((row) => Math.log10(Math.max(row.activeArea || 0.01, 0.01))),
-          coloraxis: "coloraxis",
-          line: { color: "#1a1a1a", width: 0.8 }
-        },
-        hovertemplate:
-          "<b>%{x:.3f} mg W⁻¹</b><br>" +
-          "Efficiency: %{y:.2f}%<br>" +
-          "TW/yr: %{customdata[5]:.2f}<br>" +
-          "Author: %{customdata[0]}<br>" +
-          "Year: %{customdata[1]}<br>" +
-          "Cell type: %{customdata[3]}<br>" +
-          "Active area: %{customdata[4]} cm²<extra></extra>"
-      };
-    });
+    return {
+      type: "scatter",
+      mode: "markers",
+      name: cell,
+      showlegend: false,
+      x: group.map((row) => row.totalMgW),
+      y: group.map((row) => row.efficiency),
+      customdata: group.map((row) => [
+        row.author,
+        row.year,
+        row.paperUrl,
+        row.cellType,
+        Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a",
+        Number.isFinite(row.twYr) ? row.twYr : null
+      ]),
+      marker: {
+        symbol: cellSymbols[cell],
+        size: 12,
+        opacity: 0.84,
+        color: group.map((row) => Math.log10(Math.max(row.activeArea || 0.01, 0.01))),
+        coloraxis: "coloraxis",
+        line: { color: "#1a1a1a", width: 0.8 }
+      },
+      hovertemplate:
+        "<b>%{x:.3f} mg W⁻¹</b><br>" +
+        "Efficiency: %{y:.2f}%<br>" +
+        "TW/yr: %{customdata[5]:.2f}<br>" +
+        "Author: %{customdata[0]}<br>" +
+        "Year: %{customdata[1]}<br>" +
+        "Cell type: %{customdata[3]}<br>" +
+        "Active area: %{customdata[4]} cm²<extra></extra>"
+    };
+  });
 
   const layout = {
     autosize: true,
