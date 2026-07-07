@@ -7,8 +7,8 @@ const PVDataIndium = (() => {
       .replace(/\s+/g, " ");
   }
 
-  function normalizeKey(value) {
-    return normalizeText(value).toLowerCase();
+  function keyify(value) {
+    return normalizeText(value).toLowerCase().replace(/\s+/g, "");
   }
 
   function parseDate(value) {
@@ -85,7 +85,7 @@ const PVDataIndium = (() => {
   }
 
   function classifyCellType(row) {
-    const raw = normalizeKey(resolveField(row, ["Cell", "Si Bottom cell type"]));
+    const raw = keyify(resolveField(row, ["Cell", "Si Bottom cell type"]));
 
     if (raw.includes("shj") || raw.includes("heterojunction")) return "SHJ";
     if (raw.includes("topcon") || raw.includes("polo")) return "TOPCon/POLO";
@@ -101,102 +101,77 @@ const PVDataIndium = (() => {
     return { mode: "zero" };
   }
 
-  const FRONT_PROFILES = {
-    "ito": indiumProfile(0.74, 7.14),
-    "izo": indiumProfile(0.827 * 0.9, 7.14),
-    "io:h/ito": indiumProfile(0.827 * 0.9 + 0.74 * 0.1, 7.14),
-    "iwo": indiumProfile(0.827 * 0.99, 7.14),
-    "izro": indiumProfile(0.827 * 0.98, 7.14),
-    "agnws": zeroProfile(),
-    "azo": zeroProfile(),
-    "moox/au/moox": zeroProfile(),
-    "in-free": zeroProfile()
-  };
+  function buildLookup(entries) {
+    const out = {};
+    entries.forEach(([aliases, profile]) => {
+      aliases.forEach((alias) => {
+        out[keyify(alias)] = profile;
+      });
+    });
+    return out;
+  }
 
-  const REAR_PROFILES = {
-    "inox:h/ag": indiumProfile(0.827, 7.14),
-    "izo/ag": indiumProfile(0.827 * 0.9, 7.14),
-    "izo/mgf2/ag": indiumProfile(0.827 * 0.9, 7.14),
-    "doped-inox:h/ag/siox/ag": indiumProfile(0.74, 7.14),
-    "ito/ag": indiumProfile(0.74, 7.14),
-    "ito/ag/al": indiumProfile(0.74, 7.14),
-    "ito/al/ag": indiumProfile(0.74, 7.14),
-    "ito/au": indiumProfile(0.74, 7.14),
-    "ito/sio2/ag": indiumProfile(0.74, 7.14),
-    "ito/silica/ag": indiumProfile(0.74, 7.14),
-    "ito/sio2-np/ag": indiumProfile(0.74, 7.14),
-    "ito/mgf2/ni/al": indiumProfile(0.74, 7.14),
-    "ito/mgfx/ag": indiumProfile(0.74, 7.14),
-    "ito/meso-al2o3/ag": indiumProfile(0.74, 7.14),
-    "inox/ag": indiumProfile(0.827, 7.14),
-    "doped inox/ag/sio2/ag": indiumProfile(0.74, 7.14),
-    "doped inox/ag": indiumProfile(0.74, 7.14),
-    "izro/ag": indiumProfile(0.827 * 0.98, 7.14),
-    "izro/siox/ag": indiumProfile(0.827 * 0.98, 7.14),
-    "iwo/ag": indiumProfile(0.827 * 0.99, 7.14),
+  const FRONT_PROFILES = buildLookup([
+    [["ITO"], indiumProfile(0.74, 7.14)],
+    [["IZO"], indiumProfile(0.827 * 0.9, 7.14)],
+    [["IO:H/ITO", "IO:H / ITO"], indiumProfile(0.827 * 0.9 + 0.74 * 0.1, 7.14)],
+    [["IWO"], indiumProfile(0.827 * 0.99, 7.14)],
+    [["IZrO"], indiumProfile(0.827 * 0.98, 7.14)],
+    [["Doped-InOx", "Doped InOx", "Doped-InOx:H", "Doped InOx:H"], indiumProfile(0.74, 7.14)],
+    [["AgNWs", "AZO", "MoOx/Au/MoOx", "In-Free", "In-free"], zeroProfile()],
+    [["Not clear", "Other"], null]
+  ]);
 
-    "ag": zeroProfile(),
-    "al": zeroProfile(),
-    "ag/al": zeroProfile(),
-    "al/ag": zeroProfile(),
-    "al/ti/ag": zeroProfile(),
-    "ti/pd/ag/pt": zeroProfile(),
-    "ti/pd/ag": zeroProfile(),
-    "cr/ag": zeroProfile(),
-    "cr/pd/ag/ag/al": zeroProfile(),
-    "azo/ag": zeroProfile(),
-    "azo/al": zeroProfile(),
-    "no tce": zeroProfile(),
+  const REAR_PROFILES = buildLookup([
+    [["InOx:H/Ag", "InOx:H / Ag"], indiumProfile(0.827, 7.14)],
+    [["IZO/Ag", "IZO / Ag"], indiumProfile(0.827 * 0.9, 7.14)],
+    [["IZO/MgF2/Ag", "IZO / MgF2 / Ag"], indiumProfile(0.827 * 0.9, 7.14)],
+    [["Doped-InOx:H/Ag/SiOx/Ag", "Doped InOx:H/Ag/SiOx/Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/Ag", "ITO / Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/Ag/Al", "ITO / Ag / Al"], indiumProfile(0.74, 7.14)],
+    [["ITO/Al/Ag", "ITO / Al / Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/Au", "ITO / Au"], indiumProfile(0.74, 7.14)],
+    [["ITO/SiO2/Ag", "ITO / SiO2 / Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/Silica/Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/SiO2-NP/Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/MgF2/Ni/Al"], indiumProfile(0.74, 7.14)],
+    [["ITO/MgFx/Ag"], indiumProfile(0.74, 7.14)],
+    [["ITO/meso-Al2O3/Ag"], indiumProfile(0.74, 7.14)],
+    [["InOx/Ag", "InOx / Ag"], indiumProfile(0.827, 7.14)],
+    [["Doped InOx/Ag/SiO2/Ag", "Doped-InOx/Ag/SiO2/Ag"], indiumProfile(0.74, 7.14)],
+    [["Doped InOx/Ag", "Doped-InOx/Ag"], indiumProfile(0.74, 7.14)],
+    [["IZrO/Ag", "IZrO / Ag"], indiumProfile(0.827 * 0.98, 7.14)],
+    [["IZrO/SiOx/Ag", "IZrO / SiOx / Ag"], indiumProfile(0.827 * 0.98, 7.14)],
+    [["IWO/Ag", "IWO / Ag"], indiumProfile(0.827 * 0.99, 7.14)],
 
-    "tco/ag": null,
-    "not clear": null,
-    "other": null
-  };
+    [["Ag", "Al", "Ag/Al", "Al/Ag", "Al/Ti/Ag", "Ti/Pd/Ag/Pt", "Ti/Pd/Ag", "Cr/Ag", "Cr/Pd/Ag/Ag/Al", "AZO/Ag", "AZO/Al", "No TCE"], zeroProfile()],
+    [["TCO/Ag", "Not clear", "Other"], null]
+  ]);
 
-  const INTER_PROFILES = {
-    "iwo": indiumProfile(0.827 * 0.99, 7.14),
-    "ito": indiumProfile(0.74, 7.14),
-    "izo": indiumProfile(0.827 * 0.9, 7.14),
-    "inox": indiumProfile(0.827, 7.14),
-    "doped inox": indiumProfile(0.74, 7.14),
-    "doped-inox:h": indiumProfile(0.74, 7.14),
-    "inox:h": indiumProfile(0.827, 7.14),
-    "io:h": indiumProfile(0.74, 7.14),
-    "ito/izo": indiumProfile(0.74, 7.14),
+  const INTER_PROFILES = buildLookup([
+    [["IWO"], indiumProfile(0.827 * 0.99, 7.14)],
+    [["ITO"], indiumProfile(0.74, 7.14)],
+    [["IZO"], indiumProfile(0.827 * 0.9, 7.14)],
+    [["InOx"], indiumProfile(0.827, 7.14)],
+    [["Doped InOx", "Doped-InOx:H", "Doped InOx:H"], indiumProfile(0.74, 7.14)],
+    [["InOx:H"], indiumProfile(0.827, 7.14)],
+    [["IO:H"], indiumProfile(0.74, 7.14)],
+    [["ITO/IZO", "ITO / IZO"], indiumProfile(0.74, 7.14)],
 
-    "zto": zeroProfile(),
-    "none": zeroProfile(),
-    "no layer": zeroProfile(),
-    "nc-siox(n)": zeroProfile(),
-    "nc-siox:h(n/p)": zeroProfile(),
-    "tisi2": zeroProfile(),
-    "tiox/tiny": zeroProfile(),
-    "n-n-p organic": zeroProfile(),
-    "a*-si:h(n)": zeroProfile(),
-    "nc-si:h(p)": zeroProfile(),
-    "nc-si:h(n)": zeroProfile(),
-    "a-si:h(p+)": zeroProfile(),
-    "nc-si:h(n/p)": zeroProfile(),
-    "nc-si:h(p/n)": zeroProfile(),
-    "poly-si(n/p)": zeroProfile(),
-    "nc-si(n+)": zeroProfile(),
-    "uc-si:h(p/n)": zeroProfile(),
-
-    "not clear": null,
-    "other": null
-  };
+    [["ZTO", "None", "No layer"], zeroProfile()],
+    [["nc-SiOx(n)", "nc-SiOx:H(n/p)", "TiSi2", "TiOx/TiNy", "n-n-p organic", "a*-Si:H(n)", "nc-Si:H(p)", "nc-Si:H(n)", "a-Si:H(p+)", "nc-Si:H(n/p)", "nc-Si:H(p/n)", "poly-Si(n/p)", "nc-Si(n+)", "uc-Si:H(p/n)"], zeroProfile()],
+    [["Not clear", "Other"], null]
+  ]);
 
   function getProfile(kind, rawValue) {
-    const key = normalizeKey(rawValue);
+    const key = keyify(rawValue);
     if (!key) return null;
 
-    let profile = null;
-    if (kind === "front") profile = FRONT_PROFILES[key] ?? null;
-    if (kind === "rear") profile = REAR_PROFILES[key] ?? null;
-    if (kind === "inter") profile = INTER_PROFILES[key] ?? null;
+    if (kind === "front") return FRONT_PROFILES[key] ?? null;
+    if (kind === "rear") return REAR_PROFILES[key] ?? null;
+    if (kind === "inter") return INTER_PROFILES[key] ?? null;
 
-    if (profile === null) return null;
-    return profile;
+    return null;
   }
 
   function getThickness(row, kind) {
@@ -226,7 +201,8 @@ const PVDataIndium = (() => {
         "Inter-layer thickness",
         "IL thickness (nm)",
         "Interlayer thickness",
-        "Inter-layer thicknes"
+        "Inter-layer thicknes",
+        "Inter-layer TCE thickness"
       ])
     );
   }
@@ -281,7 +257,7 @@ const PVDataIndium = (() => {
       frontTco: normalizeText(resolveField(row, ["Front TCO", "Front TCE (fTCE)"])),
       rearTco: normalizeText(resolveField(row, ["Rear electrode", "Rear Electrode"])),
       interTco: normalizeText(resolveField(row, ["Inter-layer", "Interlayer TCE"])),
-      certified: normalizeKey(resolveField(row, ["Certified", "certified"])),
+      certified: keyify(resolveField(row, ["Certified", "certified"])),
       author: getAuthor(row),
       year: getYear(row),
       paperUrl: getPaperUrl(row)
@@ -302,3 +278,5 @@ const PVDataIndium = (() => {
     computeRow
   };
 })();
+
+window.PVDataIndium = PVDataIndium;
