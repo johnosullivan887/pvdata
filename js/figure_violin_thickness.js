@@ -257,89 +257,94 @@ function renderViolinThicknessPlot(rows) {
     });
   });
 
-  const layout = {
-    autosize: true,
-    height: 620,
-    paper_bgcolor: "#ffffff",
-    plot_bgcolor: "#ffffff",
-    margin: { l: 70, r: 20, t: 20, b: 140 },
-    font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
-    legend: {
-      orientation: "h",
-      x: 0.5,
-      y: -0.28,
-      xanchor: "center",
-      yanchor: "top",
-      bordercolor: "#000000",
-      borderwidth: 1
-    },
-    xaxis: {
-      domain: xDomains[0],
-      range: [-0.5, 1.5],
-      tickmode: "array",
-      tickvals: [0, 1],
-      ticktext: subgroups,
-      tickangle: 0,
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    xaxis2: {
-      domain: xDomains[1],
-      range: [-0.5, 1.5],
-      tickmode: "array",
-      tickvals: [0, 1],
-      ticktext: subgroups,
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    xaxis3: {
-      domain: xDomains[2],
-      range: [-0.5, 1.5],
-      tickmode: "array",
-      tickvals: [0, 1],
-      ticktext: subgroups,
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    xaxis4: {
-      domain: xDomains[3],
-      range: [-0.5, 1.5],
-      tickmode: "array",
-      tickvals: [0, 1],
-      ticktext: subgroups,
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    yaxis: {
-      title: "TCE thickness (nm)",
-      range: [0, sectionMax.Front],
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    yaxis2: {
-      range: [0, sectionMax.Middle],
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    yaxis3: {
-      range: [0, sectionMax.Rear],
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    },
-    yaxis4: {
-      range: [0, sectionMax.Total],
-      showline: true,
-      linecolor: "#222222",
-      zeroline: false
-    }
-  };
+ const layout = {
+  autosize: true,
+  height: 620,
+  paper_bgcolor: "#ffffff",
+  plot_bgcolor: "#ffffff",
+  margin: { l: 70, r: 30, t: 28, b: 140 },
+  font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
+
+  xaxis: {
+    domain: xDomains[0],
+    anchor: "y",
+    tickmode: "array",
+    tickvals: [0, 1],
+    ticktext: subgroups,
+    tickangle: 0,
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false
+  },
+  xaxis2: {
+    domain: xDomains[1],
+    anchor: "y2",
+    tickmode: "array",
+    tickvals: [0, 1],
+    ticktext: subgroups,
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false
+  },
+  xaxis3: {
+    domain: xDomains[2],
+    anchor: "y3",
+    tickmode: "array",
+    tickvals: [0, 1],
+    ticktext: subgroups,
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false
+  },
+  xaxis4: {
+    domain: xDomains[3],
+    anchor: "y4",
+    tickmode: "array",
+    tickvals: [0, 1],
+    ticktext: subgroups,
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false
+  },
+
+  yaxis: {
+    anchor: "free",
+    position: xDomains[0][0],
+    domain: [0, 1],
+    title: "TCE thickness (nm)",
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false,
+    automargin: true
+  },
+  yaxis2: {
+    anchor: "free",
+    position: xDomains[1][0],
+    domain: [0, 1],
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false,
+    automargin: true
+  },
+  yaxis3: {
+    anchor: "free",
+    position: xDomains[2][0],
+    domain: [0, 1],
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false,
+    automargin: true
+  },
+  yaxis4: {
+    anchor: "free",
+    position: xDomains[3][0],
+    domain: [0, 1],
+    showline: true,
+    linecolor: "#222222",
+    zeroline: false,
+    automargin: true
+  }
+};
 
   Plotly.react(plotDiv, [...legendTraces, ...traces], layout, {
     responsive: true,
