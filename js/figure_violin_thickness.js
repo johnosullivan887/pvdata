@@ -32,10 +32,18 @@ function renderViolinThicknessPlot(rows) {
     return Number.isFinite(n) ? n : null;
   };
 
+  const median = (arr) => {
+    if (!arr.length) return NaN;
+    const a = arr.slice().sort((x, y) => x - y);
+    const mid = Math.floor(a.length / 2);
+    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+  };
+
   const getEfficiency = (row) =>
     toNumber(getValue(row, "n tandem", "η (%)", "Efficiency"));
 
-  const getCell = (row) => normalize(getValue(row, "Cell", "Si Bottom cell type")).toLowerCase();
+  const getCell = (row) =>
+    normalize(getValue(row, "Cell", "Si Bottom cell type")).toLowerCase();
 
   const classifyCell = (row) => {
     const s = getCell(row);
@@ -46,7 +54,7 @@ function renderViolinThicknessPlot(rows) {
 
   const getThickness = (row, keys) => toNumber(getValue(row, ...keys));
 
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? true;
+  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
 
   const cleanRows = rows
     .map((row) => {
@@ -168,8 +176,6 @@ function renderViolinThicknessPlot(rows) {
   const traces = [];
 
   sectionDefs.forEach((sec, secIndex) => {
-    const x0 = secIndex * 2;
-    const x1 = x0 + 1;
     const valuesByGroup = sectionData[sec.key];
     const ymax = sectionMax[sec.key];
     const axis = axisIds[secIndex];
@@ -198,7 +204,10 @@ function renderViolinThicknessPlot(rows) {
         hovertemplate: "Thickness: %{y:.2f} nm<extra></extra>"
       });
 
-      const sampled = vals.length > 200 ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200) : vals;
+      const sampled = vals.length > 200
+        ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200)
+        : vals;
+
       const jitter = sampled.map(() => (Math.random() - 0.5) * 0.16);
 
       traces.push({
@@ -226,7 +235,7 @@ function renderViolinThicknessPlot(rows) {
         xaxis: axis.x,
         yaxis: axis.y,
         showlegend: false,
-        text: [`n = ${vals.length}<br>median = ${Number(npMedian(vals)).toFixed(1)}`],
+        text: [`n = ${vals.length}<br>median = ${median(vals).toFixed(1)}`],
         textposition: "top center",
         hoverinfo: "skip",
         textfont: { size: 12, color: "#111111" }
@@ -247,16 +256,6 @@ function renderViolinThicknessPlot(rows) {
       textfont: { size: 14, color: "#111111" }
     });
   });
-
-  const median = (arr) => {
-    const a = arr.slice().sort((x, y) => x - y);
-    const mid = Math.floor(a.length / 2);
-    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
-  };
-
-  function npMedian(arr) {
-    return median(arr);
-  }
 
   const layout = {
     autosize: true,
