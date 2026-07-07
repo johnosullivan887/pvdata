@@ -84,6 +84,20 @@ function getValue(row, ...keys) {
   return "";
 }
 
+function normalizeCategory(value) {
+  const text = String(value ?? "").trim();
+
+  if (text === "") return "";
+
+  const lower = text.toLowerCase();
+
+  if (lower === "not clear") return "Not clear";
+  if (lower === "none") return "None";
+  if (lower === "other") return "Other";
+
+  return text;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -141,7 +155,9 @@ function getDatabaseCell(row) {
 }
 
 function getDatabaseFrontTCO(row) {
-  return getValue(row, "Front TCE (fTCE)", "Front TCO");
+  return normalizeCategory(
+    getValue(row, "Front TCE (fTCE)", "Front TCO")
+  );
 }
 
 function getDatabaseCertified(row) {
@@ -153,11 +169,15 @@ function getDatabaseCertified(row) {
 }
 
 function getDatabaseInterlayerTCE(row) {
-  return getValue(row, "Interlayer TCE", "Inter-layer");
+  return normalizeCategory(
+    getValue(row, "Interlayer TCE", "Inter-layer")
+  );
 }
 
 function getDatabaseRearTCE(row) {
-  return getValue(row, "Rear Electrode", "Rear electrode");
+  return normalizeCategory(
+    getValue(row, "Rear Electrode", "Rear electrode")
+  );
 }
 
 function uniqueSorted(values, comparator) {
