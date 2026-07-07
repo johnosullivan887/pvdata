@@ -107,7 +107,7 @@ function renderIndiumPlot(rows) {
         </label>
 
         <label style="display:flex; flex-direction:column; gap:6px; font-size:14px;">
-          <span>Show papers from year &ge; <strong id="indium-year-value"></strong></span>
+          <span>Show papers from year &le; <strong id="indium-year-value"></strong></span>
           <input type="range" id="indium-year-min" min="${minYearAvailable}" max="${maxYearAvailable}" step="1" value="${minYearAvailable}" />
         </label>
 
