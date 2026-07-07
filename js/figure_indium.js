@@ -211,7 +211,7 @@ function renderIndiumPlot(rows) {
   const cellOrder = ["SHJ", "TOPCon/POLO", "Al-BSF/PERC", "Other"];
   const cellSymbols = {
     SHJ: "diamond",
-    TOPCon/POLO: "circle",
+    "TOPCon/POLO": "circle",
     "Al-BSF/PERC": "triangle-up",
     Other: "star"
   };
