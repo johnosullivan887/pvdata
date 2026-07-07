@@ -437,6 +437,18 @@ function renderAllFigures() {
   if (typeof renderIndiumPlot === "function") {
     renderIndiumPlot(tableData);
   }
+
+  if (typeof renderParetoPlot === "function") {
+    renderParetoPlot(tableData);
+  }
+
+  if (typeof renderTimelinePlot === "function") {
+    renderTimelinePlot(tableData);
+  }
+
+  if (typeof renderCombinationHeatmap === "function") {
+    renderCombinationHeatmap(tableData);
+  }
 }
 
 document.addEventListener("change", (event) => {
