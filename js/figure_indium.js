@@ -10,7 +10,7 @@ function renderIndiumPlot(rows) {
     return;
   }
 
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
+  window.__indiumRows = rows;
 
   const normalizeText = (value) =>
     String(value ?? "")
@@ -61,17 +61,163 @@ function renderIndiumPlot(rows) {
         return null;
       }
 
+      const yearNum = Number(
+        String(computed.year || "").match(/(19|20)\d{2}/)?.[0] ??
+          (Number.isFinite(computed.date?.getFullYear?.()) ? computed.date.getFullYear() : NaN)
+      );
+
       return {
         ...computed,
         cellType: classifyCellType(row),
+        yearNum,
         twYr: twYrFromMgW(computed.totalMgW)
       };
     })
     .filter(Boolean);
 
-  const visibleRows = certifiedOnly
-    ? plotRows.filter((row) => row.certified === "yes")
-    : plotRows;
+  const yearValues = plotRows.map((row) => row.yearNum).filter((v) => Number.isFinite(v));
+  const minYearAvailable = yearValues.length ? Math.min(...yearValues) : 2015;
+  const maxYearAvailable = yearValues.length ? Math.max(...yearValues) : 2026;
+
+  const controlsId = "indium-controls";
+  let controls = document.getElementById(controlsId);
+
+  if (!controls) {
+    controls = document.createElement("div");
+    controls.id = controlsId;
+    controls.style.cssText = [
+      "display:grid",
+      "grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))",
+      "gap: 12px",
+      "padding: 12px 14px",
+      "margin-bottom: 16px",
+      "background:#ffffff",
+      "border:1px solid #dbe3ef",
+      "border-radius:14px",
+      "box-shadow: 0 2px 10px rgba(10, 40, 92, 0.04)"
+    ].join(";");
+
+    controls.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="font-weight:700; color:#10233f;">Filters</div>
+
+        <label style="display:flex; align-items:center; gap:10px; font-size:14px; user-select:none;">
+          <input type="checkbox" id="indium-certified-only" />
+          Show certified values only
+        </label>
+
+        <label style="display:flex; flex-direction:column; gap:6px; font-size:14px;">
+          <span>Show papers from year &ge; <strong id="indium-year-value"></strong></span>
+          <input type="range" id="indium-year-min" min="${minYearAvailable}" max="${maxYearAvailable}" step="1" value="${minYearAvailable}" />
+        </label>
+
+        <label style="display:flex; flex-direction:column; gap:6px; font-size:14px;">
+          <span>Minimum efficiency &ge; <strong id="indium-eff-value">15.0</strong>%</span>
+          <input type="range" id="indium-eff-min" min="15" max="35.75" step="0.1" value="15" />
+        </label>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="font-weight:700; color:#10233f;">Bottom cell type</div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:14px; user-select:none;">
+            <input type="checkbox" class="indium-cell-toggle" value="SHJ" checked />
+            SHJ
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:14px; user-select:none;">
+            <input type="checkbox" class="indium-cell-toggle" value="TOPCon/POLO" checked />
+            TOPCon/POLO
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:14px; user-select:none;">
+            <input type="checkbox" class="indium-cell-toggle" value="Al-BSF/PERC" checked />
+            Al-BSF/PERC
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; font-size:14px; user-select:none;">
+            <input type="checkbox" class="indium-cell-toggle" value="Other" checked />
+            Other
+          </label>
+        </div>
+
+        <div style="margin-top:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button id="indium-reset" type="button" style="padding:8px 12px; border:1px solid #d0d9e7; border-radius:10px; background:#f7fbff; cursor:pointer;">Reset filters</button>
+          <span style="font-size:12px; color:#5c6b82;">Use the filters to reduce clutter in the indium plot.</span>
+        </div>
+      </div>
+    `;
+
+    const parent = plotDiv.parentElement || plotDiv;
+    parent.insertBefore(controls, plotDiv);
+
+    if (!controls.dataset.bound) {
+      controls.dataset.bound = "true";
+
+      const rerender = () => renderIndiumPlot(window.__indiumRows || rows);
+
+      controls.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", rerender);
+        input.addEventListener("change", rerender);
+      });
+
+      controls.querySelector("#indium-reset")?.addEventListener("click", () => {
+        const certified = controls.querySelector("#indium-certified-only");
+        const year = controls.querySelector("#indium-year-min");
+        const eff = controls.querySelector("#indium-eff-min");
+        const cellBoxes = controls.querySelectorAll(".indium-cell-toggle");
+
+        if (certified) certified.checked = false;
+        if (year) year.value = String(minYearAvailable);
+        if (eff) eff.value = "15";
+        cellBoxes.forEach((box) => {
+          box.checked = true;
+        });
+
+        renderIndiumPlot(window.__indiumRows || rows);
+      });
+    }
+  }
+
+  const certifiedOnlyEl = document.getElementById("indium-certified-only");
+  const yearMinEl = document.getElementById("indium-year-min");
+  const effMinEl = document.getElementById("indium-eff-min");
+  const yearValueEl = document.getElementById("indium-year-value");
+  const effValueEl = document.getElementById("indium-eff-value");
+
+  if (yearMinEl) {
+    yearMinEl.min = String(minYearAvailable);
+    yearMinEl.max = String(maxYearAvailable);
+    if (!yearMinEl.value) yearMinEl.value = String(minYearAvailable);
+  }
+
+  if (effMinEl) {
+    if (!effMinEl.value) effMinEl.value = "15";
+  }
+
+  if (yearValueEl && yearMinEl) {
+    yearValueEl.textContent = yearMinEl.value;
+  }
+
+  if (effValueEl && effMinEl) {
+    effValueEl.textContent = Number(effMinEl.value).toFixed(1);
+  }
+
+  const certifiedOnly = certifiedOnlyEl?.checked ?? false;
+  const minYear = Number(yearMinEl?.value ?? minYearAvailable);
+  const minEfficiency = Number(effMinEl?.value ?? 15);
+
+  const enabledCells = new Set(
+    Array.from(document.querySelectorAll(".indium-cell-toggle"))
+      .filter((box) => box.checked)
+      .map((box) => box.value)
+  );
+
+  const visibleRows = plotRows.filter((row) => {
+    if (certifiedOnly && row.certified !== "yes") return false;
+    if (Number.isFinite(row.yearNum) && row.yearNum < minYear) return false;
+    if (row.efficiency < minEfficiency) return false;
+    if (!enabledCells.has(row.cellType)) return false;
+    return true;
+  });
 
   const cellOrder = ["SHJ", "TOPCon/POLO", "Al-BSF/PERC", "Other"];
 
@@ -91,14 +237,14 @@ function renderIndiumPlot(rows) {
 
   const colorscale = [
     [0.00, "#435887"],
-    [0.10, "#4A6B86"],
-    [0.20, "#527F8A"],
-    [0.35, "#5F9583"],
-    [0.50, "#78A47B"],
-    [0.65, "#9CAF82"],
-    [0.80, "#C7B89B"],
-    [0.90, "#D8C4C4"],
-    [1.00, "#E4CCE2"]
+    [0.10, "#2f6f9d"],
+    [0.22, "#1f8fa7"],
+    [0.36, "#19a98c"],
+    [0.50, "#49b86a"],
+    [0.64, "#98c84f"],
+    [0.76, "#f1c84b"],
+    [0.88, "#f79f53"],
+    [1.00, "#e4cce2"]
   ];
 
   const colorMin = -2;
@@ -151,7 +297,7 @@ function renderIndiumPlot(rows) {
         marker: {
           symbol: cellSymbols[cell],
           size: 12,
-          opacity: 0.82,
+          opacity: 0.84,
           color: group.map((row) => Math.log10(Math.max(row.activeArea || 0.01, 0.01))),
           coloraxis: "coloraxis",
           line: { color: "#1a1a1a", width: 0.8 }
@@ -170,7 +316,7 @@ function renderIndiumPlot(rows) {
   const layout = {
     autosize: true,
     height: 540,
-    margin: { l: 72, r: 35, t: 92, b: 62 },
+    margin: { l: 72, r: 35, t: 120, b: 62 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     font: {
@@ -190,7 +336,7 @@ function renderIndiumPlot(rows) {
     },
     yaxis: {
       title: "Power conversion efficiency (%)",
-      range: [15, 35.75],
+      range: [15, 36.4],
       dtick: 5,
       showline: true,
       linecolor: "#222222",
@@ -233,7 +379,7 @@ function renderIndiumPlot(rows) {
         x0: 0.064,
         x1: 0.064,
         y0: 15,
-        y1: 35.75,
+        y1: 36.4,
         line: { color: "#555555", width: 1, dash: "dash" }
       },
       {
@@ -241,20 +387,20 @@ function renderIndiumPlot(rows) {
         x0: 1.159,
         x1: 1.159,
         y0: 15,
-        y1: 35.75,
+        y1: 36.4,
         line: { color: "#555555", width: 1, dash: "dash" }
       }
     ],
     annotations: [
       {
         x: 0.064,
-        y: 35.45,
+        y: 36.05,
         yref: "y",
         text: "0.064 mg W⁻¹ (3 TW yr⁻¹)",
         showarrow: true,
         arrowhead: 0,
-        ax: 52,
-        ay: -42,
+        ax: 50,
+        ay: -44,
         arrowcolor: "#222222",
         arrowsize: 1,
         arrowwidth: 1,
@@ -268,13 +414,13 @@ function renderIndiumPlot(rows) {
       },
       {
         x: 1.159,
-        y: 35.45,
+        y: 35.05,
         yref: "y",
         text: "1.159 mg W⁻¹ (0.17 TW yr⁻¹)",
         showarrow: true,
         arrowhead: 0,
-        ax: 48,
-        ay: -42,
+        ax: 55,
+        ay: -30,
         arrowcolor: "#222222",
         arrowsize: 1,
         arrowwidth: 1,
