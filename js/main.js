@@ -241,7 +241,7 @@ function renderDatabaseTable() {
           <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
           <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
           <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
-          <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"))}</td>
+          <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer", "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"))}</td>
           <td>${escapeHtml(getValue(row, "Rear Electrode", "Rear electrode"))}</td>
           <td>${escapeHtml(getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"))}</td>
           <td>${escapeHtml(getValue(row, "Active Area (cm2)", "Cell active area"))}</td>
