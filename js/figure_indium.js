@@ -75,14 +75,23 @@ function renderIndiumPlot(rows) {
           Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a"
         ]),
         marker: {
-          symbol: cellSymbols[cell],
-          size: 12,
-          opacity: 0.82,
-          color: group.map((row) => Math.log10(Math.max(row.activeArea || 0.01, 0.01))),
-          coloraxis: "coloraxis",
-          line: { color: "#1a1a1a", width: 0.8 }
-        },
-        hovertemplate:
+        symbol: cellSymbols[cell],
+        size: 12,
+    
+        color: "white",
+    
+        line: {
+            color: group.map((row) =>
+                Plotly.d3.interpolateViridis(
+                    (Math.log10(Math.max(row.activeArea || 0.01,0.01))-minLog)/
+                    (maxLog-minLog)
+                      )
+                  ),
+                  width:2
+              }
+          },
+        
+          hovertemplate:
           "<b>%{x:.3f} mg W⁻¹</b><br>" +
           "Efficiency: %{y:.2f}%<br>" +
           "Author: %{customdata[0]}<br>" +
