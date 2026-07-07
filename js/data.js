@@ -11,6 +11,7 @@ async function loadCSV(path) {
       header: true,
       skipEmptyLines: true,
       dynamicTyping: false,
+      transformHeader: (header) => header.trim(),
       complete: (results) => {
         if (results.errors && results.errors.length) {
           console.warn("CSV parse warnings:", results.errors);
