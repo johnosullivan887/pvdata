@@ -29,13 +29,6 @@ function renderIndiumPlot(rows) {
     Other: "star"
   };
 
-  const cellColors = {
-    SHJ: "#1f77b4",
-    "TOPCon/POLO": "#ff7f0e",
-    "Al-BSF/PERC": "#2ca02c",
-    Other: "#7f7f7f"
-  };
-
   const activeAreas = visibleRows
     .map((row) => row.activeArea)
     .filter((v) => Number.isFinite(v) && v > 0);
@@ -79,7 +72,7 @@ function renderIndiumPlot(rows) {
           row.year,
           row.paperUrl,
           row.cellType,
-          Number.isFinite(row.activeArea) ? row.activeArea : null
+          Number.isFinite(row.activeArea) ? row.activeArea.toFixed(3) : "n/a"
         ]),
         marker: {
           symbol: cellSymbols[cell],
@@ -95,8 +88,7 @@ function renderIndiumPlot(rows) {
           "Author: %{customdata[0]}<br>" +
           "Year: %{customdata[1]}<br>" +
           "Cell type: %{customdata[3]}<br>" +
-          "Active area: %{customdata[4]:.3f} cm²<br>" +
-          "<extra></extra>"
+          "Active area: %{customdata[4]} cm²<extra></extra>"
       };
     });
 
