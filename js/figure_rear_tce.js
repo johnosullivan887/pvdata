@@ -2,147 +2,121 @@ function renderRearTcePlot(rows) {
   const plotDiv = document.getElementById("rear-tce-plot");
   if (!plotDiv) return;
 
-  plotDiv.style.width = "100%";
-  plotDiv.style.height = "520px";
-
   const base = window.TceMaterialPlotBase;
-  if (!base) {
+  const tax = window.TceMaterialTaxonomy;
+
+  if (!base || !tax) {
     plotDiv.innerHTML = "<p>TCE plot helpers are missing.</p>";
     return;
   }
 
-  const normalizeCategory = (value) => {
-    const text = base.normalizeText(value);
-    if (!text) return "";
-
-    const lower = text.toLowerCase();
-    if (lower === "not clear") return "Not clear";
-    if (lower === "none" || lower === "no tce") return "No TCE";
-    if (lower === "other") return "Other";
-
-    return text;
-  };
+  plotDiv.style.width = "100%";
+  plotDiv.style.height = "520px";
 
   const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
 
-  const cleanRows = rows
-    .map((row) => ({
-      date: base.parseDate(base.resolveField(row, ["Publishing date", "Date"])),
-      efficiency: base.getEfficiency(row),
-      rearTCE: normalizeCategory(
-        base.resolveField(row, ["Rear electrode", "Rear Electrode"])
-      ),
-      certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
-      author: base.getAuthor(row),
-      year: base.getYear(row),
-      paperUrl: base.getPaperUrl(row)
-    }))
-    .filter((row) => row.date && row.efficiency !== null && row.rearTCE);
+  const plotRows = rows
+    .map((row) => {
+      const date = base.parseDate(base.resolveField(row, ["Publishing date", "Date"]));
+      const efficiency = base.getEfficiency(row);
+      const rawLabel = tax.normalizeText(base.resolveField(row, ["Rear electrode", "Rear Electrode"]));
+      const family = tax.familyFromRear(rawLabel);
 
-  const plotRows = certifiedOnly
-    ? cleanRows.filter((row) => row.certified === "yes")
-    : cleanRows;
+      if (!date || efficiency === null || !family) return null;
 
-  const categoryCounts = cleanRows.reduce((acc, row) => {
-    acc[row.rearTCE] = (acc[row.rearTCE] || 0) + 1;
+      return {
+        date,
+        efficiency,
+        rawLabel,
+        family,
+        certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
+        author: base.getAuthor(row),
+        year: base.getYear(row),
+        paperUrl: base.getPaperUrl(row)
+      };
+    })
+    .filter(Boolean);
+
+  const familyCounts = plotRows.reduce((acc, row) => {
+    acc[row.family] = (acc[row.family] || 0) + 1;
     return acc;
   }, {});
 
-  const allCategories = Object.keys(categoryCounts).sort((a, b) => {
-    const diff = categoryCounts[b] - categoryCounts[a];
+  const allFamilies = Object.keys(familyCounts).sort((a, b) => {
+    const diff = familyCounts[b] - familyCounts[a];
     return diff !== 0 ? diff : a.localeCompare(b);
   });
 
-  const markerSymbols = [
-    "circle",
-    "diamond",
-    "square",
-    "triangle-up",
-    "triangle-down",
-    "cross",
-    "x",
-    "pentagon",
-    "hexagon",
-    "star",
-    "hourglass",
-    "bowtie",
-    "triangle-left",
-    "triangle-right"
-  ];
+  const visibleRows = certifiedOnly
+    ? plotRows.filter((row) => row.certified === "yes")
+    : plotRows;
 
-  const markerColors = [
-    "#1f77b4",
-    "#ff7f0e",
-    "#2ca02c",
-    "#d62728",
-    "#9467bd",
-    "#8c564b",
-    "#e377c2",
-    "#7f7f7f",
-    "#bcbd22",
-    "#17becf",
-    "#4c78a8",
-    "#f58518",
-    "#54a24b",
-    "#e45756",
-    "#72b7b2",
-    "#b279a2",
-    "#ff9da6",
-    "#9d755d",
-    "#bab0ab",
-    "#5f9ed1",
-    "#8dd3c7",
-    "#fb8072",
-    "#80b1d3",
-    "#fdb462"
-  ];
-
-  const styleMap = {};
-  allCategories.forEach((cat, i) => {
-    styleMap[cat] = {
-      marker: markerSymbols[i % markerSymbols.length],
-      color: markerColors[i % markerColors.length]
-    };
-  });
-
-  const traces = allCategories
-    .filter((cat) => plotRows.some((row) => row.rearTCE === cat))
-    .map((cat) => {
-      const group = plotRows.filter((row) => row.rearTCE === cat);
-      const style = styleMap[cat];
+  const legendTraces = allFamilies
+    .filter((family) => visibleRows.some((row) => row.family === family))
+    .map((family) => {
+      const style = tax.familyStyle(family);
 
       return {
         type: "scatter",
         mode: "markers",
-        name: cat,
+        name: family,
+        x: [null],
+        y: [null],
+        showlegend: true,
+        hoverinfo: "skip",
+        marker: {
+          symbol: style.symbol,
+          size: 11,
+          color: "white",
+          line: {
+            color: style.color,
+            width: 2
+          }
+        }
+      };
+    });
+
+  const dataTraces = allFamilies
+    .filter((family) => visibleRows.some((row) => row.family === family))
+    .map((family) => {
+      const style = tax.familyStyle(family);
+      const group = visibleRows.filter((row) => row.family === family);
+
+      return {
+        type: "scatter",
+        mode: "markers",
+        name: family,
+        showlegend: false,
         x: group.map((row) => row.date),
         y: group.map((row) => row.efficiency),
         customdata: group.map((row) => [
           row.author,
           row.year,
-          row.paperUrl
+          row.paperUrl,
+          row.family,
+          row.rawLabel
         ]),
         marker: {
-          symbol: style.marker,
+          symbol: style.symbol,
           size: 10,
           color: style.color,
-          opacity: 0.78,
-          line: { color: "#1a1a1a", width: 0.8 }
+          opacity: 0.8,
+          line: { color: "#1a1a1a", width: 0.7 }
         },
         hovertemplate:
           "<b>%{x|%Y-%m-%d}</b><br>" +
           "Efficiency: %{y:.2f}%<br>" +
+          "Family: %{customdata[3]}<br>" +
+          "Raw label: %{customdata[4]}<br>" +
           "Author: %{customdata[0]}<br>" +
-          "Year: %{customdata[1]}<br>" +
-          "Rear electrode: " + cat +
-          "<extra></extra>"
+          "Year: %{customdata[1]}<extra></extra>"
       };
     });
 
   const layout = {
     autosize: true,
     height: 520,
-    margin: { l: 65, r: 20, t: 18, b: 55 },
+    margin: { l: 65, r: 20, t: 45, b: 55 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     font: {
@@ -154,13 +128,13 @@ function renderRearTcePlot(rows) {
       title: "Publication date",
       tickformat: "%Y",
       dtick: "M12",
+      range: [base.parseDate("2015-07-07"), base.parseDate("2025-12-12")],
       showline: true,
       linecolor: "#666666",
       zeroline: false,
       showgrid: true,
       gridcolor: "#e6e6e6",
-      gridwidth: 0.6,
-      range: [base.parseDate("2015-07-07"), base.parseDate("2025-12-12")]
+      gridwidth: 0.6
     },
     yaxis: {
       title: "Power conversion efficiency (%)",
@@ -175,8 +149,10 @@ function renderRearTcePlot(rows) {
     },
     legend: {
       orientation: "v",
-      x: 0.02,
+      x: 0.98,
       y: 0.98,
+      xanchor: "right",
+      yanchor: "top",
       bgcolor: "rgba(255,255,255,1)",
       bordercolor: "#d0d0d0",
       borderwidth: 1,
@@ -184,7 +160,7 @@ function renderRearTcePlot(rows) {
     }
   };
 
-  Plotly.react(plotDiv, traces, layout, {
+  Plotly.react(plotDiv, [...legendTraces, ...dataTraces], layout, {
     responsive: true,
     displayModeBar: true
   });
