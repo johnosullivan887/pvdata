@@ -29,7 +29,7 @@ const PVDataIndium = (() => {
 
   function resolveField(row, keys) {
     for (const key of keys) {
-      const value = row[key];
+      const value = row?.[key];
       if (value !== undefined && value !== null && String(value).trim() !== "") {
         return value;
       }
