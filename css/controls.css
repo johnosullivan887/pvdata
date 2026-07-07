@@ -1,1 +1,53 @@
+.figure-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  align-items: start;
+}
 
+.control-panel {
+  background: white;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.control-panel h2,
+.figure-panel h2 {
+  margin-top: 0;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.figure-panel {
+  background: white;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.figure-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  user-select: none;
+}
+
+@media (max-width: 900px) {
+  .figure-layout {
+    grid-template-columns: 1fr;
+  }
+}
