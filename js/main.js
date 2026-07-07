@@ -39,6 +39,41 @@ function parseNumber(value) {
   return Number.isFinite(n) ? n : null;
 }
 
+function getValue(row, ...keys) {
+  for (const key of keys) {
+    const value = row[key];
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return String(value).trim();
+    }
+  }
+  return "";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatReference(value) {
+  const ref = String(value ?? "").trim();
+  if (!ref) return "";
+
+  if (/^https?:\/\//i.test(ref)) {
+    return `<a href="${escapeHtml(ref)}" target="_blank" rel="noopener noreferrer">Open</a>`;
+  }
+
+  if (/^10\.\d{4,9}\//i.test(ref)) {
+    const doiUrl = `https://doi.org/${ref}`;
+    return `<a href="${escapeHtml(doiUrl)}" target="_blank" rel="noopener noreferrer">Open</a>`;
+  }
+
+  return escapeHtml(ref);
+}
+
 function buildReferenceCell(row) {
   const ref = row["Reference"] || row["Reference link"] || row["DOI"] || "";
 
@@ -63,19 +98,19 @@ function renderDatabase(rows) {
     .map((row) => {
       return `
         <tr>
-          <td>${row["Author"] || ""}</td>
-          <td>${row["Publishing date"] || row["Date"] || row["Year"] || ""}</td>
-          <td>${row["Si Bottom cell type"] || row["Cell"] || ""}</td>
-          <td>${row["Interlayer TCE"] || row["Inter-layer"] || ""}</td>
-          <td>${row["Inter-layer thicknes"] || row["Inter-layer thickness"] || row["IL thickness (nm)"] || ""}</td>
-          <td>${row["Rear Electrode"] || row["Rear electrode"] || ""}</td>
-          <td>${row["Rear TCE thickness (nm)"] || row["Rear TCO thickness"] || ""}</td>
-          <td>${row["Active Area (cm2)"] || row["Cell active area"] || ""}</td>
-          <td>${row["Front TCE (fTCE)"] || row["Front TCO"] || ""}</td>
-          <td>${row["fTCE thickness (nm)"] || row["Front TCO thickness"] || ""}</td>
-          <td>${row["η (%)"] || row["n tandem"] || ""}</td>
-          <td>${row["Certified (yes/no)"] || row["Certified"] || row["certified"] || ""}</td>
-          <td>${buildReferenceCell(row)}</td>
+          <td>${escapeHtml(getValue(row, "Author"))}</td>
+          <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
+          <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
+          <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer", "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"))}</td>
+          <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"))}</td>
+          <td>${escapeHtml(getValue(row, "Rear Electrode", "Rear electrode"))}</td>
+          <td>${escapeHtml(getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"))}</td>
+          <td>${escapeHtml(getValue(row, "Active Area (cm2)", "Cell active area"))}</td>
+          <td>${escapeHtml(getValue(row, "Front TCE (fTCE)", "Front TCO"))}</td>
+          <td>${escapeHtml(getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"))}</td>
+          <td>${escapeHtml(getValue(row, "η (%)", "n tandem"))}</td>
+          <td>${escapeHtml(getValue(row, "Certified (yes/no)", "Certified", "certified"))}</td>
+          <td>${formatReference(getValue(row, "Reference", "Reference link", "DOI"))}</td>
         </tr>
       `;
     })
