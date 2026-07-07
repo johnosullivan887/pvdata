@@ -84,37 +84,31 @@ const PVDataIndium = (() => {
     );
   }
 
-function classifyCellType(row) {
-  const raw = normalizeText(resolveField(row, ["Cell", "Si Bottom cell type"])).toLowerCase();
+  function classifyCellType(row) {
+    const raw = normalizeText(resolveField(row, ["Cell", "Si Bottom cell type"])).toLowerCase();
 
-  if (
-    raw.includes("shj") ||
-    raw.includes("heterojunction") ||
-    raw.includes("hjt")
-  ) {
-    return "SHJ";
+    if (raw.includes("shj") || raw.includes("heterojunction") || raw.includes("hjt")) {
+      return "SHJ";
+    }
+
+    if (raw.includes("topcon") || raw.includes("polo")) {
+      return "TOPCon/POLO";
+    }
+
+    if (
+      raw.includes("perc") ||
+      raw.includes("pert") ||
+      raw.includes("homojunction") ||
+      raw.includes("homo-junction") ||
+      raw.includes("al-bsf") ||
+      raw.includes("bsf")
+    ) {
+      return "Al-BSF/PERC";
+    }
+
+    return "Other";
   }
 
-  if (
-    raw.includes("topcon") ||
-    raw.includes("polo")
-  ) {
-    return "TOPCon/POLO";
-  }
-
-  if (
-    raw.includes("perc") ||
-    raw.includes("pert") ||
-    raw.includes("homojunction") ||
-    raw.includes("homo-junction") ||
-    raw.includes("al-bsf") ||
-    raw.includes("bsf")
-  ) {
-    return "Al-BSF/PERC";
-  }
-
-  return "Other";
-}
   function indiumProfile(fraction, density) {
     return { mode: "indium", fraction, density };
   }
@@ -229,7 +223,7 @@ function classifyCellType(row) {
     );
   }
 
-  function getContribution(row, kind, efficiencyPct) {
+  function getContribution(row, kind, efficiencyPct, materialUtilisation = DEP_EFF) {
     const raw =
       kind === "front"
         ? resolveField(row, ["Front TCO", "Front TCE (fTCE)"])
@@ -242,11 +236,14 @@ function classifyCellType(row) {
 
     if (profile.mode === "zero") return 0;
 
+    const utilisation = Number(materialUtilisation);
+    if (!Number.isFinite(utilisation) || utilisation <= 0) return null;
+
     const thicknessNm = getThickness(row, kind);
     if (thicknessNm === null) return null;
 
     const gramsPerW =
-      ((thicknessNm * 1e-7) / DEP_EFF) *
+      ((thicknessNm * 1e-7) / utilisation) *
       profile.density *
       profile.fraction *
       1000 /
@@ -255,13 +252,13 @@ function classifyCellType(row) {
     return Number.isFinite(gramsPerW) ? gramsPerW : null;
   }
 
-  function computeRow(row) {
+  function computeRow(row, materialUtilisation = DEP_EFF) {
     const efficiency = getEfficiency(row);
     if (!Number.isFinite(efficiency)) return null;
 
-    const frontMgW = getContribution(row, "front", efficiency);
-    const rearMgW = getContribution(row, "rear", efficiency);
-    const interMgW = getContribution(row, "inter", efficiency);
+    const frontMgW = getContribution(row, "front", efficiency, materialUtilisation);
+    const rearMgW = getContribution(row, "rear", efficiency, materialUtilisation);
+    const interMgW = getContribution(row, "inter", efficiency, materialUtilisation);
 
     if (frontMgW === null || rearMgW === null || interMgW === null) return null;
 
@@ -282,11 +279,13 @@ function classifyCellType(row) {
       certified: keyify(resolveField(row, ["Certified", "certified"])),
       author: getAuthor(row),
       year: getYear(row),
-      paperUrl: getPaperUrl(row)
+      paperUrl: getPaperUrl(row),
+      materialUtilisation: Number(materialUtilisation)
     };
   }
 
   return {
+    defaultMaterialUtilisation: DEP_EFF,
     parseDate,
     normalizeText,
     resolveField,
