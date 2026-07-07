@@ -257,7 +257,7 @@ function renderViolinThicknessPlot(rows) {
     });
   });
 
- const layout = {
+const layout = {
   autosize: true,
   height: 620,
   paper_bgcolor: "#ffffff",
@@ -310,7 +310,6 @@ function renderViolinThicknessPlot(rows) {
   yaxis: {
     anchor: "free",
     position: xDomains[0][0],
-    domain: [0, 1],
     title: "TCE thickness (nm)",
     showline: true,
     linecolor: "#222222",
@@ -320,7 +319,6 @@ function renderViolinThicknessPlot(rows) {
   yaxis2: {
     anchor: "free",
     position: xDomains[1][0],
-    domain: [0, 1],
     showline: true,
     linecolor: "#222222",
     zeroline: false,
@@ -329,7 +327,6 @@ function renderViolinThicknessPlot(rows) {
   yaxis3: {
     anchor: "free",
     position: xDomains[2][0],
-    domain: [0, 1],
     showline: true,
     linecolor: "#222222",
     zeroline: false,
@@ -338,7 +335,6 @@ function renderViolinThicknessPlot(rows) {
   yaxis4: {
     anchor: "free",
     position: xDomains[3][0],
-    domain: [0, 1],
     showline: true,
     linecolor: "#222222",
     zeroline: false,
