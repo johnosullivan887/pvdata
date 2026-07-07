@@ -152,6 +152,14 @@ function getDatabaseCertified(row) {
   return "";
 }
 
+function getDatabaseInterlayerTCE(row) {
+  return getValue(row, "Interlayer TCE", "Inter-layer");
+}
+
+function getDatabaseRearTCE(row) {
+  return getValue(row, "Rear Electrode", "Rear electrode");
+}
+
 function uniqueSorted(values, comparator) {
   return [...new Set(values.filter((v) => String(v ?? "").trim() !== ""))].sort(comparator);
 }
@@ -173,10 +181,14 @@ function populateDatabaseFilters(rows) {
   const years = uniqueSorted(rows.map(getDatabaseYear), (a, b) => Number(b) - Number(a));
   const cells = uniqueSorted(rows.map(getDatabaseCell), (a, b) => a.localeCompare(b));
   const fronts = uniqueSorted(rows.map(getDatabaseFrontTCO), (a, b) => a.localeCompare(b));
+  const interlayers = uniqueSorted(rows.map(getDatabaseInterlayerTCE), (a, b) => a.localeCompare(b));
+  const rears = uniqueSorted(rows.map(getDatabaseRearTCE), (a, b) => a.localeCompare(b));
 
   fillSelect("db-year", years, "All years");
   fillSelect("db-cell", cells, "All cell types");
   fillSelect("db-front", fronts, "All front TCEs");
+  fillSelect("db-interlayer", interlayers, "All interlayer TCEs");
+  fillSelect("db-rear", rears, "All rear TCEs");
 }
 
 function getDatabaseFilters() {
@@ -185,7 +197,9 @@ function getDatabaseFilters() {
     certified: document.getElementById("db-certified")?.value || "all",
     year: document.getElementById("db-year")?.value || "all",
     cell: document.getElementById("db-cell")?.value || "all",
-    front: document.getElementById("db-front")?.value || "all"
+    front: document.getElementById("db-front")?.value || "all",
+    interlayer: document.getElementById("db-interlayer")?.value || "all",
+    rear: document.getElementById("db-rear")?.value || "all"
   };
 }
 
@@ -212,6 +226,8 @@ function rowMatchesDatabase(row, filters) {
   if (filters.year !== "all" && getDatabaseYear(row) !== filters.year) return false;
   if (filters.cell !== "all" && getDatabaseCell(row) !== filters.cell) return false;
   if (filters.front !== "all" && getDatabaseFrontTCO(row) !== filters.front) return false;
+  if (filters.interlayer !== "all" && getDatabaseInterlayerTCE(row) !== filters.interlayer) return false;
+  if (filters.rear !== "all" && getDatabaseRearTCE(row) !== filters.rear) return false;
 
   return true;
 }
@@ -240,8 +256,8 @@ function renderDatabaseTable() {
           <td>${escapeHtml(getValue(row, "Author"))}</td>
           <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
           <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
+          <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer"))}</td>
           <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
-          <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer", "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)"))}</td>
           <td>${escapeHtml(getValue(row, "Rear Electrode", "Rear electrode"))}</td>
           <td>${escapeHtml(getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"))}</td>
           <td>${escapeHtml(getValue(row, "Active Area (cm2)", "Cell active area"))}</td>
@@ -279,6 +295,52 @@ function renderDatabaseTable() {
       </tbody>
     </table>
   `;
+}
+
+function bindDatabaseControls() {
+  const ids = [
+    "db-search",
+    "db-certified",
+    "db-year",
+    "db-cell",
+    "db-front",
+    "db-interlayer",
+    "db-rear"
+  ];
+
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", renderDatabaseTable);
+    el.addEventListener("change", renderDatabaseTable);
+  });
+
+  document.getElementById("db-reset")?.addEventListener("click", () => {
+    const search = document.getElementById("db-search");
+    const certified = document.getElementById("db-certified");
+    const year = document.getElementById("db-year");
+    const cell = document.getElementById("db-cell");
+    const front = document.getElementById("db-front");
+    const interlayer = document.getElementById("db-interlayer");
+    const rear = document.getElementById("db-rear");
+
+    if (search) search.value = "";
+    if (certified) certified.value = "all";
+    if (year) year.value = "all";
+    if (cell) cell.value = "all";
+    if (front) front.value = "all";
+    if (interlayer) interlayer.value = "all";
+    if (rear) rear.value = "all";
+
+    renderDatabaseTable();
+  });
+}
+
+function renderDatabase(rows) {
+  databaseRows = rows.slice();
+  populateDatabaseFilters(databaseRows);
+  bindDatabaseControls();
+  renderDatabaseTable();
 }
 
 function bindDatabaseControls() {
