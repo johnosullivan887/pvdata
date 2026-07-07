@@ -133,7 +133,7 @@ function renderFrontTcoPlot(rows) {
       showgrid: true,
       gridcolor: "#e6e6e6",
       gridwidth: 0.6,
-      range: [CONFIG.xMin, CONFIG.xMax]
+      range: [CONFIG.dates.min, CONFIG.dates.max]
     },
     yaxis: {
       title: "Power conversion efficiency (%)",
