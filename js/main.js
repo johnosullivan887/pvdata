@@ -26,8 +26,8 @@ function parseDate(value) {
   if (!value) return null;
 
   const s = String(value).trim();
-
   const parts = s.split("/");
+
   if (parts.length === 3) {
     const [day, month, year] = parts.map(Number);
     const d = new Date(year, month - 1, day);
@@ -114,14 +114,13 @@ function bindPaperOpenBehavior(plotDiv) {
       window.open(lastPaperUrl, "_blank", "noopener,noreferrer");
     }
   });
-} 
+}
 
 function normalizeCategory(value) {
   const text = String(value ?? "").trim();
   if (text === "") return "";
 
   const lower = text.toLowerCase();
-
   if (lower === "not clear") return "Not clear";
   if (lower === "none") return "None";
   if (lower === "other") return "Other";
@@ -185,7 +184,7 @@ function compareDatabaseValues(a, b) {
   });
 }
 
-function sortHeader(label, key) {
+function sortHeaderHtml(label, key) {
   const arrow =
     databaseSort.key === key
       ? databaseSort.direction === "asc"
@@ -286,9 +285,11 @@ function renderDatabaseTable() {
   }
 
   const sortedRows = filteredRows.slice();
+
   const accessorMap = {
     author: (row) => getValue(row, "Author"),
     date: (row) => getDatabaseDateSortValue(row),
+    highlight: (row) => getPaperHighlight(row),
     cell: (row) => getDatabaseCell(row),
     interlayer: (row) => getDatabaseInterlayerTCE(row),
     "interlayer-thickness": (row) =>
@@ -313,11 +314,12 @@ function renderDatabaseTable() {
 
   const rowsHtml = sortedRows
     .map((row) => {
+      const highlight = getPaperHighlight(row);
       return `
         <tr>
           <td>${escapeHtml(getValue(row, "Author"))}</td>
           <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
-          <td class="highlight-cell" title="${escapeHtml(getValue(row, "Highlight"))}">${escapeHtml(getValue(row, "Highlight"))}</td>
+          <td class="highlight-cell" title="${escapeHtml(highlight)}">${escapeHtml(highlight)}</td>
           <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
           <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer"))}</td>
           <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
@@ -338,19 +340,19 @@ function renderDatabaseTable() {
     <table class="data-table">
       <thead>
         <tr>
-          <th data-sort="author" style="cursor:pointer;">${sortHeader("Author", "author")}</th>
-          <th data-sort="date" style="cursor:pointer;">${sortHeader("Date", "date")}</th>
-          <th data-sort="Highlight" style="cursor:pointer;">${sortHeader("Highlight", "highlight")}</th>
-          <th data-sort="cell" style="cursor:pointer;">${sortHeader("Si Bottom cell type", "cell")}</th>
-          <th data-sort="interlayer" style="cursor:pointer;">${sortHeader("Interlayer TCE", "interlayer")}</th>
-          <th data-sort="interlayer-thickness" style="cursor:pointer;">${sortHeader("IL thickness (nm)", "interlayer-thickness")}</th>
-          <th data-sort="rear" style="cursor:pointer;">${sortHeader("Rear Electrode", "rear")}</th>
-          <th data-sort="rear-thickness" style="cursor:pointer;">${sortHeader("Rear TCE thickness (nm)", "rear-thickness")}</th>
-          <th data-sort="area" style="cursor:pointer;">${sortHeader("Active Area (cm<sup>2</sup>)", "area")}</th>
-          <th data-sort="front" style="cursor:pointer;">${sortHeader("Front TCE (fTCE)", "front")}</th>
-          <th data-sort="front-thickness" style="cursor:pointer;">${sortHeader("fTCE thickness (nm)", "front-thickness")}</th>
-          <th data-sort="efficiency" style="cursor:pointer;">${sortHeader("η (%)", "efficiency")}</th>
-          <th data-sort="certified" style="cursor:pointer;">${sortHeader("Certified (yes/no)", "certified")}</th>
+          <th data-sort="author" style="cursor:pointer;">${sortHeaderHtml("Author", "author")}</th>
+          <th data-sort="date" style="cursor:pointer;">${sortHeaderHtml("Date", "date")}</th>
+          <th data-sort="highlight" style="cursor:pointer;">${sortHeaderHtml("Highlight", "highlight")}</th>
+          <th data-sort="cell" style="cursor:pointer;">${sortHeaderHtml("Si Bottom cell type", "cell")}</th>
+          <th data-sort="interlayer" style="cursor:pointer;">${sortHeaderHtml("Interlayer TCE", "interlayer")}</th>
+          <th data-sort="interlayer-thickness" style="cursor:pointer;">${sortHeaderHtml("IL thickness (nm)", "interlayer-thickness")}</th>
+          <th data-sort="rear" style="cursor:pointer;">${sortHeaderHtml("Rear Electrode", "rear")}</th>
+          <th data-sort="rear-thickness" style="cursor:pointer;">${sortHeaderHtml("Rear TCE thickness (nm)", "rear-thickness")}</th>
+          <th data-sort="area" style="cursor:pointer;">${sortHeaderHtml("Active Area (cm<sup>2</sup>)", "area")}</th>
+          <th data-sort="front" style="cursor:pointer;">${sortHeaderHtml("Front TCE (fTCE)", "front")}</th>
+          <th data-sort="front-thickness" style="cursor:pointer;">${sortHeaderHtml("fTCE thickness (nm)", "front-thickness")}</th>
+          <th data-sort="efficiency" style="cursor:pointer;">${sortHeaderHtml("η (%)", "efficiency")}</th>
+          <th data-sort="certified" style="cursor:pointer;">${sortHeaderHtml("Certified (yes/no)", "certified")}</th>
           <th>Reference (link to paper)</th>
         </tr>
       </thead>
