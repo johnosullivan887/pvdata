@@ -296,7 +296,7 @@ function renderIndiumPlot(rows) {
     },
     xaxis: {
       title: "Indium content (mg W⁻¹)",
-      range: [0, 11],
+      range: [CONFIG.indium.min, CONFIG.indium.max]
       showline: true,
       linecolor: "#222222",
       zeroline: false,
