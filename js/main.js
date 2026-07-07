@@ -67,7 +67,7 @@ function renderDatabase(rows) {
           <td>${row["Publishing date"] || row["Date"] || row["Year"] || ""}</td>
           <td>${row["Si Bottom cell type"] || row["Cell"] || ""}</td>
           <td>${row["Interlayer TCE"] || row["Inter-layer"] || ""}</td>
-          <td>${row["IL thickness (nm)"] || row["Inter-layer thickness"] || ""}</td>
+          <td>${row["Inter-layer thicknes"] || row["Inter-layer thickness"] || row["IL thickness (nm)"] || ""}</td>
           <td>${row["Rear Electrode"] || row["Rear electrode"] || ""}</td>
           <td>${row["Rear TCE thickness (nm)"] || row["Rear TCO thickness"] || ""}</td>
           <td>${row["Active Area (cm2)"] || row["Cell active area"] || ""}</td>
