@@ -282,24 +282,35 @@ function renderDatabaseTable() {
     tableWrapEl.innerHTML = "<p>No rows match the current filters.</p>";
     return;
   }
+  
+  const sortedRows = filteredRows.slice();
 
-  const rowsHtml = filteredRows
+  if (databaseSort.key) {
+    sortedRows.sort((r1, r2) => {
+      const v1 = databaseSort.key(r1);
+      const v2 = databaseSort.key(r2);
+      const cmp = compareDatabaseValues(v1, v2);
+      return databaseSort.direction === "asc" ? cmp : -cmp;
+    });
+  }
+  
+  const rowsHtml = sortedRows
     .map((row) => {
       return `
         <tr>
-          <td>${escapeHtml(getValue(row, "Author"))}</td>
-          <td>${escapeHtml(getValue(row, "Publishing date", "Date", "Year"))}</td>
-          <td>${escapeHtml(getValue(row, "Si Bottom cell type", "Cell"))}</td>
-          <td>${escapeHtml(getValue(row, "Interlayer TCE", "Inter-layer"))}</td>
-          <td>${escapeHtml(getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"))}</td>
-          <td>${escapeHtml(getValue(row, "Rear Electrode", "Rear electrode"))}</td>
-          <td>${escapeHtml(getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"))}</td>
-          <td>${escapeHtml(getValue(row, "Active Area (cm2)", "Cell active area"))}</td>
-          <td>${escapeHtml(getValue(row, "Front TCE (fTCE)", "Front TCO"))}</td>
-          <td>${escapeHtml(getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"))}</td>
-          <td>${escapeHtml(getValue(row, "η (%)", "n tandem"))}</td>
-          <td>${escapeHtml(getValue(row, "Certified (yes/no)", "Certified", "certified"))}</td>
-          <td>${formatReference(getValue(row, "Reference", "Reference link", "DOI"))}</td>
+          <th data-sort="author" style="cursor:pointer;">Author</th>
+          <th data-sort="date" style="cursor:pointer;">Date</th>
+          <th data-sort="cell" style="cursor:pointer;">Si Bottom cell type</th>
+          <th data-sort="interlayer" style="cursor:pointer;">Interlayer TCE</th>
+          <th data-sort="interlayer-thickness" style="cursor:pointer;">IL thickness (nm)</th>
+          <th data-sort="rear" style="cursor:pointer;">Rear Electrode</th>
+          <th data-sort="rear-thickness" style="cursor:pointer;">Rear TCE thickness (nm)</th>
+          <th data-sort="area" style="cursor:pointer;">Active Area (cm<sup>2</sup>)</th>
+          <th data-sort="front" style="cursor:pointer;">Front TCE (fTCE)</th>
+          <th data-sort="front-thickness" style="cursor:pointer;">fTCE thickness (nm)</th>
+          <th data-sort="efficiency" style="cursor:pointer;">η (%)</th>
+          <th data-sort="certified" style="cursor:pointer;">Certified (yes/no)</th>
+          <th>Reference (link to paper)</th>
         </tr>
       `;
     })
@@ -330,6 +341,37 @@ function renderDatabaseTable() {
     </table>
   `;
 }
+
+  tableWrapEl.querySelectorAll("th[data-sort]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const sortKey = th.dataset.sort;
+
+      const keyMap = {
+        author: (row) => getValue(row, "Author"),
+        date: (row) => getValue(row, "Publishing date", "Date", "Year"),
+        cell: (row) => getDatabaseCell(row),
+        interlayer: (row) => getDatabaseInterlayerTCE(row),
+        "interlayer-thickness": (row) =>
+          getValue(row, "Inter-layer thicknes", "Inter-layer thickness", "IL thickness (nm)", "Inter-layer TCE thickness"),
+        rear: (row) => getDatabaseRearTCE(row),
+        "rear-thickness": (row) => getValue(row, "Rear TCE thickness (nm)", "Rear TCO thickness"),
+        area: (row) => getValue(row, "Active Area (cm2)", "Cell active area"),
+        front: (row) => getDatabaseFrontTCO(row),
+        "front-thickness": (row) => getValue(row, "fTCE thickness (nm)", "Front TCO thickness", "Total front TCO thickness"),
+        efficiency: (row) => getValue(row, "η (%)", "n tandem"),
+        certified: (row) => getDatabaseCertified(row),
+      };
+
+      if (databaseSort.key === keyMap[sortKey]) {
+        databaseSort.direction = databaseSort.direction === "asc" ? "desc" : "asc";
+      } else {
+        databaseSort.key = keyMap[sortKey];
+        databaseSort.direction = "asc";
+      }
+
+      renderDatabaseTable();
+    });
+  });
 
 function bindDatabaseControls() {
   const ids = [
