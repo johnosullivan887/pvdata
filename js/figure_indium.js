@@ -40,6 +40,8 @@ function renderIndiumPlot(rows) {
     if (
       raw.includes("perc") ||
       raw.includes("pert") ||
+      raw.includes("homojunction") ||
+      raw.includes("homo-junction") ||
       raw.includes("al-bsf") ||
       raw.includes("bsf")
     ) {
@@ -52,7 +54,11 @@ function renderIndiumPlot(rows) {
   const plotRows = rows
     .map((row) => {
       const computed = PVDataIndium.computeRow(row);
-      if (!computed || computed.totalMgW === null || !Number.isFinite(computed.efficiency)) {
+      if (
+        !computed ||
+        computed.totalMgW === null ||
+        !Number.isFinite(computed.efficiency)
+      ) {
         return null;
       }
 
@@ -83,27 +89,6 @@ function renderIndiumPlot(rows) {
     Other: "#7f7f7f"
   };
 
-  const activeAreas = visibleRows
-    .map((row) => row.activeArea)
-    .filter((v) => Number.isFinite(v) && v > 0);
-
-  const logAreas = activeAreas.length
-    ? activeAreas.map((v) => Math.log10(v))
-    : [-2, 1.2];
-
-  const minLog = Math.min(...logAreas);
-  const maxLog = Math.max(...logAreas);
-
-  const tickCandidates = [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 16];
-  const usableTicks = tickCandidates.filter(
-    (v) => v >= Math.pow(10, minLog) && v <= Math.pow(10, maxLog)
-  );
-
-  const exponentLabel = (value) => {
-    const exp = Math.round(Math.log10(value));
-    return `10<sup>${exp}</sup>`;
-  };
-
   const colorscale = [
     [0.0, "#011959"],
     [0.15, "#0A285C"],
@@ -114,6 +99,12 @@ function renderIndiumPlot(rows) {
     [0.88, "#D29343"],
     [1.0, "#F8A17B"]
   ];
+
+  const colorMin = Math.log10(0.01);
+  const colorMax = Math.log10(16);
+
+  const tickValues = [0.01, 0.1, 1, 10].map((v) => Math.log10(v));
+  const tickText = ["10<sup>-2</sup>", "10<sup>-1</sup>", "10<sup>0</sup>", "10<sup>1</sup>"];
 
   const legendTraces = cellOrder
     .filter((cell) => visibleRows.some((row) => row.cellType === cell))
@@ -207,16 +198,16 @@ function renderIndiumPlot(rows) {
     },
     coloraxis: {
       colorscale: colorscale,
-      cmin: minLog,
-      cmax: maxLog,
+      cmin: colorMin,
+      cmax: colorMax,
       colorbar: {
         title: {
           text: "Cell active area (cm²)",
           side: "right"
         },
         tickmode: "array",
-        tickvals: usableTicks.map((v) => Math.log10(v)),
-        ticktext: usableTicks.map((v) => exponentLabel(v)),
+        tickvals: tickValues,
+        ticktext: tickText,
         thickness: 18,
         outlinewidth: 0.8,
         outlinecolor: "#222222"
