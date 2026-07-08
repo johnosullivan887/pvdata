@@ -69,6 +69,7 @@ function renderInterlayerTcePlot(rows) {
   const visibleRows = certifiedOnly
     ? plotRows.filter((row) => row.certified === "yes")
     : plotRows;
+  window.filteredInterlayerTceRows = visibleRows;
 
   const legendTraces = allFamilies
     .filter((family) => visibleRows.some((row) => row.family === family))
