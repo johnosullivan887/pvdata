@@ -1,19 +1,60 @@
 const TceMaterialTaxonomy = (() => {
   const familyMeta = {
-    "ITO-family": { label: "ITO-family", color: "#1f77b4", symbol: "diamond" },
-    "IZO-family": { label: "IZO-family", color: "#ff7f0e", symbol: "circle" },
-    "IZrO-family": { label: "IZrO-family", color: "#2ca02c", symbol: "square" },
-    "Other InOx": { label: "Other InOx", color: "#9467bd", symbol: "triangle-up" },
-    "In-free / alternative": { label: "In-free / alternative", color: "#7f7f7f", symbol: "star" },
-    "Metal / reflector": { label: "Metal / reflector", color: "#8c564b", symbol: "triangle-down" },
-    "Tunnel junction / interlayer": {
-      label: "Tunnel junction / interlayer",
-      color: "#e377c2",
-      symbol: "x"
-    },
-    "No layer / no TCE": { label: "No layer / no TCE", color: "#bcbd22", symbol: "cross" },
-    "Unclear / other": { label: "Unclear / other", color: "#17becf", symbol: "hourglass" }
-  };
+  "ITO-family": {
+    label: "ITO-family",
+    color: "#1f77b4",
+    symbol: "diamond"
+  },
+
+  "IZO-family": {
+    label: "IZO-family",
+    color: "#ff7f0e",
+    symbol: "circle"
+  },
+
+  "IZrO-family": {
+    label: "IZrO-family",
+    color: "#2ca02c",
+    symbol: "square"
+  },
+
+  "Other InOx": {
+    label: "Other InOx",
+    color: "#9467bd",
+    symbol: "triangle-up"
+  },
+
+  "In-free / alternative": {
+    label: "In-free / alternative",
+    color: "#7f7f7f",
+    symbol: "star"
+  },
+
+  "Tunnel junction / interlayer": {
+    label: "Tunnel junction / interlayer",
+    color: "#8c564b",
+    symbol: "cross"
+  },
+
+  "No layer / no TCE": {
+    label: "No layer / no TCE",
+    color: "#bcbd22",
+    symbol: "cross-thin"
+  },
+
+  "Metal / reflector": {
+    label: "Metal / reflector",
+    color: "#d62728",
+    symbol: "triangle-down"
+  },
+
+  "Unclear / other": {
+    label: "Unclear / other",
+    color: "#17becf",
+    symbol: "x"
+  }
+};,
+  
 
   function normalizeText(value) {
     return String(value ?? "")
