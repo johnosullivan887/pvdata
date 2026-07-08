@@ -14,6 +14,14 @@ function renderCombinationHeatmap(rows) {
   const certifiedOnly =
     document.getElementById("certified-only-heatmap")?.checked ?? false;
 
+  const MIN_EFF = Number(document.getElementById("certified-only-heatmap")?.value ?? 0);
+  const minEffValueEl = document.getElementById("certified-only-heatmap");
+  if (minEffValueEl) {
+    minEffValueEl.textContent = MIN_EFF.toFixed(1);
+  }
+  
+  if (efficiency < MIN_EFF) return null;
+
   const normalize = (value) =>
     String(value ?? "")
       .trim()
