@@ -60,6 +60,7 @@ function renderCombinationHeatmap(rows) {
 
     if (
       k.includes("azo") ||
+      k.includes("zto") ||
       k.includes("agnw") ||
       k.includes("in-free") ||
       k.includes("infree") ||
@@ -162,14 +163,14 @@ function renderCombinationHeatmap(rows) {
   ];
 
   const xDomains = [
-    [0.00, 0.30],
+    [0.00, 0.29],
     [0.355, 0.645],
-    [0.70, 1.00]
+    [0.71, 1.00]
   ];
 
   const yDomains = [
-    [0.56, 1.00],
-    [0.00, 0.44]
+    [0.60, 1.00],
+    [0.00, 0.36]
   ];
 
   const subplotTitles = [
@@ -268,7 +269,7 @@ function renderCombinationHeatmap(rows) {
     height: 860,
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
-    margin: { l: 105, r: 90, t: 70, b: 125 },
+    margin: { l: 100, r: 80, t: 55, b: 90 },
     font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
     annotations,
     xaxis: {
@@ -281,7 +282,7 @@ function renderCombinationHeatmap(rows) {
       linecolor: "#222222",
       zeroline: false,
       automargin: true,
-      showticklabels: false
+      showticklabels: true
     },
     yaxis: {
       domain: yDomains[0],
@@ -293,7 +294,7 @@ function renderCombinationHeatmap(rows) {
       linecolor: "#222222",
       zeroline: false,
       automargin: true,
-      showticklabels: false
+      showticklabels: true
     },
     xaxis2: {
       domain: xDomains[1],
