@@ -20,7 +20,6 @@ function renderTimelinePlot(rows) {
     rows,
     plotDivId: "timeline-plot",
     certifiedCheckboxId: "certified-only-timeline",
-    title: "Front TCE adoption timeline",
     categories,
     classifyRow: (row) => {
       const raw = base.resolveField(row, ["Front TCE (fTCE)", "Front TCO"]);
