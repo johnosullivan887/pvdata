@@ -488,6 +488,21 @@ document.addEventListener("change", (event) => {
     renderTimelinePlot(tableData);
     return;
   }
+
+  if (id === "certified-only-interlayer-timeline") {
+    renderInterlayerTimelinePlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-rear-timeline") {
+    renderRearTimelinePlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-bottom-cell-timeline") {
+    renderBottomCellTimelinePlot(tableData);
+    return;
+  }
 });
 
 document.addEventListener("input", (event) => {
