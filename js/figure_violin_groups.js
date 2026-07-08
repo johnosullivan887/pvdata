@@ -6,7 +6,7 @@ const colors = ["#011959","#0A285C","#103F60","#1C5A62","#3C6D56","#687B3E","#9D
 
 const MIN_EFF = Number(document.getElementById("certified-only-violin-groups")?.value ?? 0);const minEffValueEl = document.getElementById("certified-only-violin-groups");if (minEffValueEl) {minEffValueEl.textContent = MIN_EFF.toFixed(1);}
 
-if (efficiency < MIN_EFF) return null;
+//if (efficiency < MIN_EFF) return null;
 
 const normalize = (value) =>String(value ?? "").trim().replace(/\s+/g, " ");
 
