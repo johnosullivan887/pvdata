@@ -192,7 +192,7 @@ function renderFrontTcoPlot(rows) {
       orientation: "v",
       x: 0.98,
       y: 0.98,
-      xanchor: "right",
+      xanchor: "left",
       yanchor: "top",
       bgcolor: "rgba(255,255,255,1)",
       bordercolor: "#d0d0d0",
