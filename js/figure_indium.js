@@ -339,7 +339,7 @@ function renderIndiumPlot(rows) {
 
   const layout = {
     autosize: true,
-    height: 540,
+    height: 840,
     margin: { l: 72, r: 35, t: 120, b: 62 },
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
