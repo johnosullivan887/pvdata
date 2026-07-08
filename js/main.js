@@ -452,9 +452,20 @@ function renderAllFigures() {
   if (typeof renderTimelinePlot === "function") renderTimelinePlot(tableData);
 }
 
+function renderTceMaterialFigures() {
+  if (typeof renderFrontTcoPlot === "function") renderFrontTcoPlot(tableData);
+  if (typeof renderInterlayerTcePlot === "function") renderInterlayerTcePlot(tableData);
+  if (typeof renderRearTcePlot === "function") renderRearTcePlot(tableData);
+}
 document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "certified-only") {
-    renderAllFigures();
+  if (event.target && event.target.id === "certified-only-tce") {
+    renderTceMaterialFigures();
+  }
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target && event.target.id === "violin-thickness-min-eff") {
+    renderViolinThicknessPlot(tableData);
   }
 });
 
