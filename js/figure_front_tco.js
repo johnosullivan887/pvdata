@@ -190,7 +190,7 @@ function renderFrontTcoPlot(rows) {
     },
     legend: {
       orientation: "v",
-      x: 0.98,
+      x: 0.02,
       y: 0.98,
       xanchor: "left",
       yanchor: "top",
