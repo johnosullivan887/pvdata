@@ -12,6 +12,7 @@ function renderTimelinePlot(rows) {
   if (minEffValueEl) {
     minEffValueEl.textContent = MIN_EFF.toFixed(1);
   }
+  if (efficiency < MIN_EFF) return null;
   
   const points = rows
     .map((row) => ({
