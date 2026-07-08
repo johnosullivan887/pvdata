@@ -76,18 +76,6 @@ function renderCombinationHeatmap(rows) {
       showline: true,
       linecolor: "#222222"
     },
-    annotations: [
-      {
-        x: 0.0,
-        y: 1.06,
-        xref: "paper",
-        yref: "paper",
-        text: "<b>d</b>",
-        showarrow: false,
-        font: { size: 24, color: "#111111" },
-        xanchor: "left"
-      }
-    ]
   };
 
   Plotly.react(plotDiv, [trace], layout, {
