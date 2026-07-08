@@ -13,7 +13,7 @@ function renderInterlayerTcePlot(rows) {
   plotDiv.style.width = "100%";
   plotDiv.style.height = "520px";
 
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
+  const certifiedOnly = document.getElementById("certified-only-tce")?.checked ?? false
 
   const toDateString = (row) => {
     const dateText = base.resolveField(row, ["Publishing date", "Date"]);
