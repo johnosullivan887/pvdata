@@ -84,6 +84,7 @@ function renderFrontTcoPlot(rows) {
   const visibleRows = certifiedOnly
     ? plotRows.filter((row) => row.certified === "yes")
     : plotRows;
+  window.filteredFrontTceRows = visibleRows;
 
   const categoryCounts = visibleRows.reduce((acc, row) => {
     acc[row.family] = (acc[row.family] || 0) + 1;
