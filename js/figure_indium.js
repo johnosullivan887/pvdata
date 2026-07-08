@@ -300,6 +300,17 @@ function renderIndiumPlot(rows) {
       }
     }));
 
+  window.filteredIndiumRows = visibleRows;
+  
+  document
+  .getElementById("download-indium-data")
+  ?.addEventListener("click", () => {
+    downloadCSV(
+      "PVData_indium_filtered.csv",
+      window.filteredIndiumRows || []
+    );
+  });
+  
   const dataTraces = orderedCategories.map((cell) => {
     const group = visibleRows.filter((row) => row.cellType === cell);
 
