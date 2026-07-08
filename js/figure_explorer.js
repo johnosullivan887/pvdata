@@ -224,7 +224,7 @@ const PVDataExplorer = (() => {
     if (!wrap) return;
 
     if (!rows.length) {
-      wrap.innerHTML = "<p>No matching papers.</p>";
+      wrap.innerHTML = "<p>No matching cells.</p>";
       return;
     }
 
@@ -297,7 +297,7 @@ const PVDataExplorer = (() => {
 
     window.filteredExplorerArchitectureRows = filtered;
 
-    renderStatsCards(summaryEl, filtered, "Matching papers");
+    renderStatsCards(summaryEl, filtered, "Matching cells");
     renderBuilderTable(filtered);
   }
 
@@ -500,7 +500,7 @@ const PVDataExplorer = (() => {
 
     const queryRows = getSourceRows(rows);
     if (!queryRows.length) {
-      wrap.innerHTML = "<p>No matching papers.</p>";
+      wrap.innerHTML = "<p>No matching cells.</p>";
       return;
     }
 
@@ -595,7 +595,7 @@ const PVDataExplorer = (() => {
     `;
 
     if (!comparable.length) {
-      wrap.innerHTML = "<p>No similar papers found.</p>";
+      wrap.innerHTML = "<p>No similar cells found.</p>";
       return;
     }
 
@@ -719,7 +719,7 @@ const PVDataExplorer = (() => {
     if (builderSummary) {
       const builderFilters = getBuilderFilters();
       const filtered = visibleRows.filter((row) => matchesBuilderFilters(row, builderFilters));
-      renderStatsCards(builderSummary, filtered, "Matching papers");
+      renderStatsCards(builderSummary, filtered, "Matching cells");
       renderBuilderTable(filtered);
     }
 
