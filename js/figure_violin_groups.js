@@ -19,14 +19,6 @@ function renderViolinGroupsPlot(rows) {
     "#FACCFA"
   ];
 
-  const MIN_EFF = Number(document.getElementById("certified-only-violin-groups)?.value ?? 0);
-  const minEffValueEl = document.getElementById("certified-only-violin-groups");
-  if (minEffValueEl) {
-    minEffValueEl.textContent = MIN_EFF.toFixed(1);
-  }
-  
-  if (efficiency < MIN_EFF) return null;
-
   const normalize = (value) =>
     String(value ?? "")
       .trim()
@@ -38,99 +30,86 @@ function renderViolinGroupsPlot(rows) {
     return Number.isFinite(n) ? n : null;
   };
 
+  const median = (arr) => {
+    if (!arr.length) return NaN;
+    const a = arr.slice().sort((x, y) => x - y);
+    const mid = Math.floor(a.length / 2);
+    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+  };
+
   const getEfficiency = (row) =>
     toNumber(getValue(row, "n tandem", "η (%)", "Efficiency"));
 
-  const getFrontRaw = (row) => {
-    const raw = normalize(getValue(row, "Front TCO"));
-    if (!raw) return "";
-    if (raw.toLowerCase() === "not clear") return "Not clear";
-    return raw;
-  };
+  const getCell = (row) =>
+    normalize(getValue(row, "Cell", "Si Bottom cell type")).toLowerCase();
 
-  const getInterRaw = (row) => {
-    const raw = normalize(getValue(row, "Inter-layer", "Interlayer TCE"));
-    if (!raw || raw.toLowerCase() === "nan" || raw.toLowerCase() === "none") return "No layer";
-    if (raw.toLowerCase() === "not clear") return "Not clear";
-    return raw;
-  };
-
-  const classifyRear = (val) => {
-    if (val === null || val === undefined || String(val).trim() === "") return "Missing";
-
-    const s = String(val).trim();
-
-    const totalNotclear = new Set(["Not clear", "TCO/Ag"]);
-    if (totalNotclear.has(s)) return "Not clear";
-
-    const totalMetal = new Set([
-      "Ag",
-      "Al",
-      "Ag/Al",
-      "Al/Ag",
-      "Al/Ti/Ag",
-      "Ti/Pd/Ag/Pt",
-      "Ti/Pd/Ag",
-      "Cr/Ag",
-      "Cr/Pd/Ag/Ag/Al"
-    ]);
-    if (totalMetal.has(s)) return "No TCE";
-
-    const totalITO = new Set([
-      "ITO/Ag",
-      "ITO/Al",
-      "ITO/Ag/Al",
-      "ITO/Al/Ag",
-      "ITO/Au",
-      "ITO/SiO2/Ag",
-      "ITO/Silica/Ag",
-      "ITO/SiO2-NP/Ag",
-      "ITO/MgF2/Ni/Al",
-      "ITO/MgFx/Ag",
-      "ITO/meso-Al2O3/Ag"
-    ]);
-    if (totalITO.has(s)) return "ITO";
-
-    const totalIZO = new Set(["IZO/Ag", "IZO/MgF2/Ag"]);
-    if (totalIZO.has(s)) return "IZO";
-
-    const totalIZrO = new Set(["IZrO/Ag", "IZrO/SiOx/Ag"]);
-    if (totalIZrO.has(s)) return "IZrO";
-
-    const otherIn = new Set([
-      "IWO/Ag",
-      "ICO/Ag",
-      "InOx:H/Ag",
-      "InOx/Ag",
-      "Doped-InOx/Ag",
-      "Doped-InOx",
-      "Doped-InOx/Ag/SiO2/Ag",
-      "Doped-InOx:H/Ag/SiOx/Ag"
-    ]);
-    if (otherIn.has(s)) return "Other InO$_x$";
-
-    const totalAZO = new Set(["AZO/Ag", "AZO/Al"]);
-    if (totalAZO.has(s)) return "AZO";
-
+  const classifyCell = (row) => {
+    const s = getCell(row);
+    if (s.includes("shj")) return "SHJ";
+    if (s.includes("polo") || s.includes("topcon")) return "TOPCon/POLO";
     return "Other";
   };
 
-  
-  const getRearCat = (row) =>
-    classifyRear(getValue(row, "Rear electrode", "Rear Electrode"));
+  const getFront = (row) => {
+    const v = toNumber(
+      getValue(
+        row,
+        "Total front TCO thickness",
+        "Front TCO thickness",
+        "fTCE thickness (nm)",
+        "Front TCO thickness (nm)"
+      )
+    );
+    return Number.isFinite(v) ? v : null;
+  };
+
+  const getInter = (row) => {
+    const v = toNumber(
+      getValue(
+        row,
+        "Inter-layer thicknes",
+        "Inter-layer thickness",
+        "IL thickness (nm)",
+        "Interlayer thickness"
+      )
+    );
+    return Number.isFinite(v) ? v : null;
+  };
+
+  const getRear = (row) => {
+    const v = toNumber(
+      getValue(row, "Rear TCO thickness", "Rear TCE thickness (nm)", "Rear TCO thickness (nm)")
+    );
+    return Number.isFinite(v) ? v : null;
+  };
 
   const certifiedOnly =
     document.getElementById("certified-only-violin-groups")?.checked ?? false;
 
   const cleanRows = rows
-    .map((row) => ({
-      efficiency: getEfficiency(row),
-      front: getFrontRaw(row),
-      inter: getInterRaw(row),
-      rear: getRearCat(row),
-      certified: normalize(getValue(row, "Certified", "certified")).toLowerCase()
-    }))
-    .filter((row) => Number.isFinite(row.efficiency));
+    .map((row) => {
+      const efficiency = getEfficiency(row);
+      if (!Number.isFinite(efficiency)) return null;
+      if (getCell(row).includes("not clear")) return null;
+
+      const front = getFront(row);
+      const inter = getInter(row);
+      const rear = getRear(row);
+
+      return {
+        efficiency,
+        cellGroup: classifyCell(row),
+        front,
+        inter,
+        rear,
+        total:
+          Number.isFinite(front) && Number.isFinite(inter) && Number.isFinite(rear)
+            ? front + inter + rear
+            : null,
+        certified: normalize(getValue(row, "Certified", "certified")).toLowerCase()
+      };
+    })
+    .filter(Boolean);
 
   const visibleRows = certifiedOnly
     ? cleanRows.filter((row) => row.certified === "yes")
@@ -151,36 +130,16 @@ function renderViolinGroupsPlot(rows) {
     { key: "Total", label: "Total", field: "total" }
   ];
 
-  const totalValues = visibleRows.map((row) => ({
-    ...row,
-    total:
-      Number.isFinite(row.front) && Number.isFinite(row.inter) && Number.isFinite(row.rear)
-        ? row.front + row.inter + row.rear
-        : null
-  }));
-
-  const sectionData = {
-    Front: subgroups.map((grp) =>
-      visibleRows
-        .filter((row) => row.cellGroup === grp && Number.isFinite(row.front))
-        .map((row) => row.front)
-    ),
-    Middle: subgroups.map((grp) =>
-      visibleRows
-        .filter((row) => row.cellGroup === grp && Number.isFinite(row.inter))
-        .map((row) => row.inter)
-    ),
-    Rear: subgroups.map((grp) =>
-      visibleRows
-        .filter((row) => row.cellGroup === grp && Number.isFinite(row.rear))
-        .map((row) => row.rear)
-    ),
-    Total: subgroups.map((grp) =>
-      totalValues
-        .filter((row) => row.cellGroup === grp && Number.isFinite(row.total))
-        .map((row) => row.total)
-    )
-  };
+  const sectionData = Object.fromEntries(
+    sectionDefs.map((sec) => [
+      sec.key,
+      subgroups.map((grp) =>
+        visibleRows
+          .filter((row) => row.cellGroup === grp && Number.isFinite(row[sec.field]))
+          .map((row) => row[sec.field])
+      )
+    ])
+  );
 
   const sectionMax = Object.fromEntries(
     sectionDefs.map((sec) => {
@@ -256,9 +215,10 @@ function renderViolinGroupsPlot(rows) {
         hovertemplate: "Thickness: %{y:.2f} nm<extra></extra>"
       });
 
-      const sampled = vals.length > 200
-        ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200)
-        : vals;
+      const sampled =
+        vals.length > 200
+          ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200)
+          : vals;
 
       const jitter = sampled.map(() => (Math.random() - 0.5) * 0.16);
 
@@ -308,13 +268,6 @@ function renderViolinGroupsPlot(rows) {
       textfont: { size: 14, color: "#111111" }
     });
   });
-
-  function median(arr) {
-    if (!arr.length) return NaN;
-    const a = arr.slice().sort((x, y) => x - y);
-    const mid = Math.floor(a.length / 2);
-    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
-  }
 
   const layout = {
     autosize: true,
