@@ -196,6 +196,7 @@ function renderFrontTcoPlot(rows) {
       y: 0.98,
       xanchor: "left",
       yanchor: "top",
+      groupclick: "togglegroup",
       bgcolor: "rgba(255,255,255,1)",
       bordercolor: "#d0d0d0",
       borderwidth: 1,
