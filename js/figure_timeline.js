@@ -78,18 +78,6 @@ function renderTimelinePlot(rows) {
       x: 0,
       y: 1.15
     },
-    annotations: [
-      {
-        x: 0.0,
-        y: 1.08,
-        xref: "paper",
-        yref: "paper",
-        text: "<b>c</b>",
-        showarrow: false,
-        font: { size: 24, color: "#111111" },
-        xanchor: "left"
-      }
-    ]
   };
 
   Plotly.react(plotDiv, traces, layout, {
