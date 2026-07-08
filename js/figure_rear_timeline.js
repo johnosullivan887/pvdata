@@ -22,7 +22,6 @@ function renderRearTimelinePlot(rows) {
     rows,
     plotDivId: "rear-timeline-plot",
     certifiedCheckboxId: "certified-only-rear-timeline",
-    title: "Rear TCE adoption timeline",
     categories,
     classifyRow: (row) => {
       const raw = base.resolveField(row, ["Rear electrode", "Rear Electrode"]);
