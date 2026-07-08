@@ -630,5 +630,12 @@ async function loadData() {
     }
   }
 }
-
+document
+  .getElementById("download-database-filtered")
+  ?.addEventListener("click", () => {
+    downloadCSV(
+      "PVData_filtered_database.csv",
+      window.filteredDatabaseRows || []
+    );
+  });
 loadData();
