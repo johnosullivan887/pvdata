@@ -269,6 +269,10 @@ function renderDatabaseTable() {
   const filters = getDatabaseFilters();
   const filteredRows = databaseRows.filter((row) => rowMatchesDatabase(row, filters));
   window.filteredDatabaseRows = filteredRows;
+  
+  window.filteredFrontRows = visibleRows;
+  window.filteredInterlayerRows = visibleRows;
+  window.filteredRearRows = visibleRows; 
 
   summaryEl.innerHTML = `
     Showing <strong>${filteredRows.length}</strong> of <strong>${databaseRows.length}</strong> rows.
@@ -638,4 +642,40 @@ document
       window.filteredDatabaseRows || []
     );
   });
+
+function bindDownloadButtons() {
+  if (!window.PVDataDownload) return;
+
+  window.PVDataDownload.bindButton(
+    "download-database-filtered",
+    "PVData_database_filtered.csv",
+    () => window.filteredDatabaseRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-indium-filtered",
+    "PVData_indium_filtered.csv",
+    () => window.filteredIndiumRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-front-tce-filtered",
+    "PVData_front_tce_filtered.csv",
+    () => window.filteredFrontTceRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-interlayer-tce-filtered",
+    "PVData_interlayer_tce_filtered.csv",
+    () => window.filteredInterlayerTceRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-rear-tce-filtered",
+    "PVData_rear_tce_filtered.csv",
+    () => window.filteredRearTceRows || []
+  );
+}
+
 loadData();
+bindDownloadButtons();
