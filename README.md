@@ -1,2 +1,2 @@
 # pvdata
-Solar Cell Literature Data
+Tandem Solar Cell Literature Data visualiser
