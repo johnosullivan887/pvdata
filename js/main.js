@@ -270,10 +270,6 @@ function renderDatabaseTable() {
   const filteredRows = databaseRows.filter((row) => rowMatchesDatabase(row, filters));
   window.filteredDatabaseRows = filteredRows;
   
-  window.filteredFrontRows = visibleRows;
-  window.filteredInterlayerRows = visibleRows;
-  window.filteredRearRows = visibleRows; 
-
   summaryEl.innerHTML = `
     Showing <strong>${filteredRows.length}</strong> of <strong>${databaseRows.length}</strong> rows.
   `;
