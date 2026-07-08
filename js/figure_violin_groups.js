@@ -106,7 +106,7 @@ function renderViolinGroupsPlot(rows) {
       "Doped-InOx/Ag/SiO2/Ag",
       "Doped-InOx:H/Ag/SiOx/Ag"
     ]);
-    if (otherIn.has(s)) return "Other InO$_x$";
+    if (otherIn.has(s)) return "Other InO_x";
 
     const totalAZO = new Set(["AZO/Ag", "AZO/Al"]);
     if (totalAZO.has(s)) return "AZO";
@@ -150,12 +150,12 @@ function renderViolinGroupsPlot(rows) {
   const interCats = [
     "ITO",
     "IZO",
-    "Undoped InO$_x$",
-    "Doped InO$_x$",
+    "Undoped InOx",
+    "Doped InOx",
     "ZTO",
     "No layer",
     "Not clear",
-    "SiO$_x$-based TJ",
+    "SiOx-based TJ",
     "Other TJ",
     "Si-based TJ"
   ];
@@ -166,7 +166,7 @@ function renderViolinGroupsPlot(rows) {
     "ITO",
     "IZO",
     "IZrO",
-    "Other InO$_x$",
+    "Other InOx",
     "AZO"
   ];
 
@@ -184,12 +184,12 @@ function renderViolinGroupsPlot(rows) {
   const interGroups = [
     { label: "ITO", values: ["ITO"], color: colors[0] },
     { label: "IZO", values: ["IZO"], color: colors[0] },
-    { label: "Undoped InO$_x$", values: ["InOx"], color: colors[0] },
-    { label: "Doped InO$_x$", values: ["IWO", "Doped InOx", "IO:H", "ITO/IZO"], color: colors[0] },
+    { label: "Undoped InOx", values: ["InOx"], color: colors[0] },
+    { label: "Doped InOx", values: ["IWO", "Doped InOx", "IO:H", "ITO/IZO"], color: colors[0] },
     { label: "ZTO", values: ["ZTO"], color: colors[0] },
     { label: "No layer", values: ["No layer"], color: colors[3] },
     { label: "Not clear", values: ["Not clear"], color: colors[6] },
-    { label: "SiO$_x$-based TJ", values: ["nc-SiOx(n)", "nc-SiOx:H(n/p)"], color: colors[8] },
+    { label: "SiOx-based TJ", values: ["nc-SiOx(n)", "nc-SiOx:H(n/p)"], color: colors[8] },
     { label: "Other TJ", values: ["TiSi2", "TiOx/TiNy", "n-n-p organic"], color: colors[8] },
     {
       label: "Si-based TJ",
@@ -214,7 +214,7 @@ function renderViolinGroupsPlot(rows) {
     { label: "ITO", values: ["ITO"], color: colors[0] },
     { label: "IZO", values: ["IZO"], color: colors[0] },
     { label: "IZrO", values: ["IZrO"], color: colors[0] },
-    { label: "Other InO$_x$", values: ["Other InO$_x$"], color: colors[0] },
+    { label: "Other InOx", values: ["Other InOx"], color: colors[0] },
     { label: "AZO", values: ["AZO"], color: colors[0] }
   ];
 
