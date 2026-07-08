@@ -1,271 +1,416 @@
-function renderViolinGroupsPlot(rows) {const plotDiv = document.getElementById("violin-plot-1");if (!plotDiv) return;
+function renderViolinGroupsPlot(rows) {
+  const plotDiv = document.getElementById("violin-plot-1");
+  if (!plotDiv) return;
 
-plotDiv.style.width = "100%";plotDiv.style.height = "620px";
+  plotDiv.style.width = "100%";
+  plotDiv.style.height = "620px";
 
-const colors = ["#011959","#0A285C","#103F60","#1C5A62","#3C6D56","#687B3E","#9D892B","#D29343","#F8A17B","#FDB7BC","#FACCFA"];
+  const colors = [
+    "#011959",
+    "#0A285C",
+    "#103F60",
+    "#1C5A62",
+    "#3C6D56",
+    "#687B3E",
+    "#9D892B",
+    "#D29343",
+    "#F8A17B",
+    "#FDB7BC",
+    "#FACCFA"
+  ];
 
-const MIN_EFF = Number(document.getElementById("certified-only-violin-groups")?.value ?? 0);const minEffValueEl = document.getElementById("certified-only-violin-groups");if (minEffValueEl) {minEffValueEl.textContent = MIN_EFF.toFixed(1);}
+  const normalize = (value) =>
+    String(value ?? "")
+      .trim()
+      .replace(/\s+/g, " ");
 
-//if (efficiency < MIN_EFF) return null;
+  const toNumber = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    const n = Number(String(value).replace(/,/g, "").trim());
+    return Number.isFinite(n) ? n : null;
+  };
 
-const normalize = (value) =>String(value ?? "").trim().replace(/\s+/g, " ");
+  const median = (arr) => {
+    if (!arr.length) return NaN;
+    const a = arr.slice().sort((x, y) => x - y);
+    const mid = Math.floor(a.length / 2);
+    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+  };
 
-const toNumber = (value) => {if (value === null || value === undefined || value === "") return null;const n = Number(String(value).replace(/,/g, "").trim());return Number.isFinite(n) ? n : null;};
+  const getEfficiency = (row) =>
+    toNumber(getValue(row, "n tandem", "η (%)", "Efficiency"));
 
-const getEfficiency = (row) =>toNumber(getValue(row, "n tandem", "η (%)", "Efficiency"));
+  const getFrontRaw = (row) => {
+    const raw = normalize(getValue(row, "Front TCO"));
+    if (!raw) return "";
+    if (raw.toLowerCase() === "not clear") return "Not clear";
+    return raw;
+  };
 
-const getFrontRaw = (row) => {const raw = normalize(getValue(row, "Front TCO"));if (!raw) return "";if (raw.toLowerCase() === "not clear") return "Not clear";return raw;};
+  const getInterRaw = (row) => {
+    const raw = normalize(getValue(row, "Inter-layer", "Interlayer TCE"));
+    if (!raw || raw.toLowerCase() === "nan" || raw.toLowerCase() === "none") return "No layer";
+    if (raw.toLowerCase() === "not clear") return "Not clear";
+    return raw;
+  };
 
-const getInterRaw = (row) => {const raw = normalize(getValue(row, "Inter-layer", "Interlayer TCE"));if (!raw || raw.toLowerCase() === "nan" || raw.toLowerCase() === "none") return "No layer";if (raw.toLowerCase() === "not clear") return "Not clear";return raw;};
+  const classifyRear = (val) => {
+    if (val === null || val === undefined || String(val).trim() === "") return "Missing";
 
-const classifyRear = (val) => {if (val === null || val === undefined || String(val).trim() === "") return "Missing";
+    const s = String(val).trim();
 
-const s = String(val).trim();
+    const totalNotclear = new Set(["Not clear", "TCO/Ag"]);
+    if (totalNotclear.has(s)) return "Not clear";
 
-const totalNotclear = new Set(["Not clear", "TCO/Ag"]);
-if (totalNotclear.has(s)) return "Not clear";
+    const totalMetal = new Set([
+      "Ag",
+      "Al",
+      "Ag/Al",
+      "Al/Ag",
+      "Al/Ti/Ag",
+      "Ti/Pd/Ag/Pt",
+      "Ti/Pd/Ag",
+      "Cr/Ag",
+      "Cr/Pd/Ag/Ag/Al"
+    ]);
+    if (totalMetal.has(s)) return "No TCE";
 
-const totalMetal = new Set([
-  "Ag",
-  "Al",
-  "Ag/Al",
-  "Al/Ag",
-  "Al/Ti/Ag",
-  "Ti/Pd/Ag/Pt",
-  "Ti/Pd/Ag",
-  "Cr/Ag",
-  "Cr/Pd/Ag/Ag/Al"
-]);
-if (totalMetal.has(s)) return "No TCE";
+    const totalITO = new Set([
+      "ITO/Ag",
+      "ITO/Al",
+      "ITO/Ag/Al",
+      "ITO/Al/Ag",
+      "ITO/Au",
+      "ITO/SiO2/Ag",
+      "ITO/Silica/Ag",
+      "ITO/SiO2-NP/Ag",
+      "ITO/MgF2/Ni/Al",
+      "ITO/MgFx/Ag",
+      "ITO/meso-Al2O3/Ag"
+    ]);
+    if (totalITO.has(s)) return "ITO";
 
-const totalITO = new Set([
-  "ITO/Ag",
-  "ITO/Al",
-  "ITO/Ag/Al",
-  "ITO/Al/Ag",
-  "ITO/Au",
-  "ITO/SiO2/Ag",
-  "ITO/Silica/Ag",
-  "ITO/SiO2-NP/Ag",
-  "ITO/MgF2/Ni/Al",
-  "ITO/MgFx/Ag",
-  "ITO/meso-Al2O3/Ag"
-]);
-if (totalITO.has(s)) return "ITO";
+    const totalIZO = new Set(["IZO/Ag", "IZO/MgF2/Ag"]);
+    if (totalIZO.has(s)) return "IZO";
 
-const totalIZO = new Set(["IZO/Ag", "IZO/MgF2/Ag"]);
-if (totalIZO.has(s)) return "IZO";
+    const totalIZrO = new Set(["IZrO/Ag", "IZrO/SiOx/Ag"]);
+    if (totalIZrO.has(s)) return "IZrO";
 
-const totalIZrO = new Set(["IZrO/Ag", "IZrO/SiOx/Ag"]);
-if (totalIZrO.has(s)) return "IZrO";
+    const otherIn = new Set([
+      "IWO/Ag",
+      "ICO/Ag",
+      "InOx:H/Ag",
+      "InOx/Ag",
+      "Doped-InOx/Ag",
+      "Doped-InOx",
+      "Doped-InOx/Ag/SiO2/Ag",
+      "Doped-InOx:H/Ag/SiOx/Ag"
+    ]);
+    if (otherIn.has(s)) return "Other InO$_x$";
 
-const otherIn = new Set([
-  "IWO/Ag",
-  "ICO/Ag",
-  "InOx:H/Ag",
-  "InOx/Ag",
-  "Doped-InOx/Ag",
-  "Doped-InOx",
-  "Doped-InOx/Ag/SiO2/Ag",
-  "Doped-InOx:H/Ag/SiOx/Ag"
-]);
-if (otherIn.has(s)) return "Other InO$_x$";
+    const totalAZO = new Set(["AZO/Ag", "AZO/Al"]);
+    if (totalAZO.has(s)) return "AZO";
 
-const totalAZO = new Set(["AZO/Ag", "AZO/Al"]);
-if (totalAZO.has(s)) return "AZO";
+    return "Other";
+  };
 
-return "Other";
+  const getRearCat = (row) =>
+    classifyRear(getValue(row, "Rear electrode", "Rear Electrode"));
 
-};
+  const certifiedOnly =
+    document.getElementById("certified-only-violin-groups")?.checked ?? false;
 
-const getRearCat = (row) =>classifyRear(getValue(row, "Rear electrode", "Rear Electrode"));
+  const cleanRows = rows
+    .map((row) => ({
+      efficiency: getEfficiency(row),
+      front: getFrontRaw(row),
+      inter: getInterRaw(row),
+      rear: getRearCat(row),
+      certified: normalize(getValue(row, "Certified", "certified")).toLowerCase()
+    }))
+    .filter((row) => Number.isFinite(row.efficiency));
 
-const certifiedOnly =document.getElementById("certified-only-violin-groups")?.checked ?? false;
+  const visibleRows = certifiedOnly
+    ? cleanRows.filter((row) => row.certified === "yes")
+    : cleanRows;
 
-const cleanRows = rows.map((row) => ({efficiency: getEfficiency(row),front: getFrontRaw(row),inter: getInterRaw(row),rear: getRearCat(row),certified: normalize(getValue(row, "Certified", "certified")).toLowerCase()})).filter((row) => Number.isFinite(row.efficiency));
+  window.filteredViolinGroupsRows = visibleRows;
 
-const visibleRows = certifiedOnly? cleanRows.filter((row) => row.certified === "yes"): cleanRows;
+  const frontCats = [
+    "ITO",
+    "IZO",
+    "IO:H/ITO",
+    "ICO",
+    "IZrO",
+    "IZrO/IZO",
+    "In-Free",
+    "Not clear"
+  ];
 
-window.filteredViolinGroupsRows = visibleRows;
+  const interCats = [
+    "ITO",
+    "IZO",
+    "Undoped InO$_x$",
+    "Doped InO$_x$",
+    "ZTO",
+    "No layer",
+    "Not clear",
+    "SiO$_x$-based TJ",
+    "Other TJ",
+    "Si-based TJ"
+  ];
 
-const subgroups = ["SHJ", "TOPCon/POLO"];const groupColors = {SHJ: colors[0],"TOPCon/POLO": colors[3]};
+  const rearCats = [
+    "No TCE",
+    "Not clear",
+    "ITO",
+    "IZO",
+    "IZrO",
+    "Other InO$_x$",
+    "AZO"
+  ];
 
-const sectionDefs = [{ key: "Front", label: "Front", field: "front" },{ key: "Middle", label: "Middle", field: "inter" },{ key: "Rear", label: "Rear", field: "rear" },{ key: "Total", label: "Total", field: "total" }];
+  const frontGroups = [
+    { label: "ITO", values: ["ITO"], color: colors[0] },
+    { label: "IZO", values: ["IZO"], color: colors[0] },
+    { label: "IO:H/ITO", values: ["IO:H/ITO"], color: colors[0] },
+    { label: "ICO", values: ["ICO"], color: colors[0] },
+    { label: "IZrO", values: ["IZrO"], color: colors[0] },
+    { label: "IZrO/IZO", values: ["IZrO/IZO"], color: colors[0] },
+    { label: "In-Free", values: ["AgNWs", "AZO", "MoOx/Au/MoOx"], color: colors[0] },
+    { label: "Not clear", values: ["Not clear"], color: colors[6] }
+  ];
 
-const totalValues = visibleRows.map((row) => ({...row,total:Number.isFinite(row.front) && Number.isFinite(row.inter) && Number.isFinite(row.rear)? row.front + row.inter + row.rear: null}));
+  const interGroups = [
+    { label: "ITO", values: ["ITO"], color: colors[0] },
+    { label: "IZO", values: ["IZO"], color: colors[0] },
+    { label: "Undoped InO$_x$", values: ["InOx"], color: colors[0] },
+    { label: "Doped InO$_x$", values: ["IWO", "Doped InOx", "IO:H", "ITO/IZO"], color: colors[0] },
+    { label: "ZTO", values: ["ZTO"], color: colors[0] },
+    { label: "No layer", values: ["No layer"], color: colors[3] },
+    { label: "Not clear", values: ["Not clear"], color: colors[6] },
+    { label: "SiO$_x$-based TJ", values: ["nc-SiOx(n)", "nc-SiOx:H(n/p)"], color: colors[8] },
+    { label: "Other TJ", values: ["TiSi2", "TiOx/TiNy", "n-n-p organic"], color: colors[8] },
+    {
+      label: "Si-based TJ",
+      values: [
+        "a*-Si:H(n)",
+        "nc-Si:H(p)",
+        "nc-Si:H(n)",
+        "a-Si:H(p+)",
+        "nc-Si:H(n/p)",
+        "nc-Si:H(p/n)",
+        "poly-Si(n/p)",
+        "nc-Si(n+)",
+        "uc-Si:H(p/n)"
+      ],
+      color: colors[8]
+    }
+  ];
 
-const sectionData = {Front: subgroups.map((grp) =>visibleRows.filter((row) => row.cellGroup === grp && Number.isFinite(row.front)).map((row) => row.front)),Middle: subgroups.map((grp) =>visibleRows.filter((row) => row.cellGroup === grp && Number.isFinite(row.inter)).map((row) => row.inter)),Rear: subgroups.map((grp) =>visibleRows.filter((row) => row.cellGroup === grp && Number.isFinite(row.rear)).map((row) => row.rear)),Total: subgroups.map((grp) =>totalValues.filter((row) => row.cellGroup === grp && Number.isFinite(row.total)).map((row) => row.total))};
+  const rearGroups = [
+    { label: "No TCE", values: ["No TCE"], color: colors[4] },
+    { label: "Not clear", values: ["Not clear"], color: colors[6] },
+    { label: "ITO", values: ["ITO"], color: colors[0] },
+    { label: "IZO", values: ["IZO"], color: colors[0] },
+    { label: "IZrO", values: ["IZrO"], color: colors[0] },
+    { label: "Other InO$_x$", values: ["Other InO$_x$"], color: colors[0] },
+    { label: "AZO", values: ["AZO"], color: colors[0] }
+  ];
 
-const sectionMax = Object.fromEntries(sectionDefs.map((sec) => {const vals = sectionData[sec.key].flat().filter((v) => Number.isFinite(v));const max = vals.length ? Math.max(...vals) : 1;return [sec.key, max * 1.22];}));
+  const getVals = (fieldGetter, values) =>
+    visibleRows
+      .filter((row) => values.includes(fieldGetter(row)))
+      .map((row) => row.efficiency);
 
-const xDomains = [[0.00, 0.22],[0.27, 0.49],[0.54, 0.76],[0.81, 1.00]];
+  const frontData = frontGroups.map((g) => getVals((row) => row.front, g.values));
+  const interData = interGroups.map((g) => getVals((row) => row.inter, g.values));
+  const rearData = rearGroups.map((g) => getVals((row) => row.rear, g.values));
 
-const axisIds = [{ x: "x", y: "y" },{ x: "x2", y: "y2" },{ x: "x3", y: "y3" },{ x: "x4", y: "y4" }];
+  const cats = frontCats.concat(interCats, rearCats);
+  const allData = frontData.concat(interData, rearData);
+  const groupMeta = frontGroups.concat(interGroups, rearGroups);
 
-const legendTraces = [{type: "scatter",mode: "markers",x: [null],y: [null],name: "SHJ",marker: { color: groupColors.SHJ, size: 10 },hoverinfo: "skip"},{type: "scatter",mode: "markers",x: [null],y: [null],name: "TOPCon/POLO",marker: { color: groupColors["TOPCon/POLO"], size: 10 },hoverinfo: "skip"}];
+  const gap = 1.0;
+  const sepGap = 1.8;
 
-const traces = [];
+  const frontPositions = Array.from({ length: frontCats.length }, (_, i) => i * gap);
+  const middleStart = frontPositions[frontPositions.length - 1] + sepGap;
+  const interPositions = Array.from({ length: interCats.length }, (_, j) => middleStart + j * gap);
+  const rearStart = interPositions[interPositions.length - 1] + sepGap;
+  const rearPositions = Array.from({ length: rearCats.length }, (_, k) => rearStart + k * gap);
 
-sectionDefs.forEach((sec, secIndex) => {const valuesByGroup = sectionData[sec.key];const ymax = sectionMax[sec.key];const axis = axisIds[secIndex];
+  const positions = frontPositions.concat(interPositions, rearPositions);
 
-subgroups.forEach((grp, grpIndex) => {
-  const vals = valuesByGroup[grpIndex];
-  if (!vals || !vals.length) return;
-
-  const xPos = grpIndex;
-  const color = groupColors[grp];
-
-  traces.push({
-    type: "violin",
-    x: Array(vals.length).fill(xPos),
-    y: vals,
-    xaxis: axis.x,
-    yaxis: axis.y,
-    name: grp,
-    showlegend: false,
-    points: false,
-    spanmode: "hard",
-    width: 0.9,
-    line: { color, width: 1 },
-    fillcolor: color,
-    opacity: 0.55,
-    hovertemplate: "Thickness: %{y:.2f} nm<extra></extra>"
-  });
-
-  const sampled = vals.length > 200
-    ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200)
-    : vals;
-
-  const jitter = sampled.map(() => (Math.random() - 0.5) * 0.16);
-
-  traces.push({
+  const legendTraces = [
+    { name: "TCO", color: colors[0] },
+    { name: "Interconnection-free layer", color: colors[3] },
+    { name: "Tunnelling junction", color: colors[8] },
+    { name: "Not disclosed", color: colors[6] },
+    { name: "TCE-free rear electrode", color: colors[4] }
+  ].map((item) => ({
     type: "scatter",
     mode: "markers",
-    x: sampled.map((_, i) => xPos + jitter[i]),
-    y: sampled,
-    xaxis: axis.x,
-    yaxis: axis.y,
-    showlegend: false,
-    marker: {
-      size: 6,
-      color,
+    x: [null],
+    y: [null],
+    name: item.name,
+    marker: { color: item.color, size: 10 },
+    showlegend: true,
+    hoverinfo: "skip"
+  }));
+
+  const violinTraces = [];
+
+  cats.forEach((cat, idx) => {
+    const valsArr = allData[idx];
+    if (!valsArr || !valsArr.length) return;
+
+    const x = positions[idx];
+    const meta = groupMeta[idx];
+    const col = meta.color;
+
+    violinTraces.push({
+      type: "violin",
+      x: Array(valsArr.length).fill(x),
+      y: valsArr,
+      name: cat,
+      showlegend: false,
+      points: false,
+      spanmode: "hard",
+      width: 0.85,
+      line: { color: col, width: 1 },
+      fillcolor: col,
       opacity: 0.55,
-      line: { color: "none" }
+      meanline: { visible: false },
+      hovertemplate: "Efficiency: %{y:.2f}%<extra></extra>"
+    });
+
+    const jitter = Array.from({ length: valsArr.length }, () => (Math.random() - 0.5) * 0.16);
+
+    violinTraces.push({
+      type: "scatter",
+      mode: "markers",
+      x: valsArr.map((_, i) => x + jitter[i]),
+      y: valsArr,
+      showlegend: false,
+      marker: {
+        size: 6,
+        color: col,
+        opacity: 0.55,
+        line: { color: "none" }
+      },
+      hovertemplate: "Efficiency: %{y:.2f}%<extra></extra>"
+    });
+  });
+
+  const annotations = [];
+
+  cats.forEach((cat, idx) => {
+    const valsArr = allData[idx];
+    if (!valsArr || !valsArr.length) return;
+
+    const x = positions[idx];
+    annotations.push({
+      x,
+      y: Math.min(Math.max(...valsArr) + 0.2, 35.5),
+      text: String(valsArr.length),
+      showarrow: false,
+      font: { size: 12, color: "#111111" },
+      xanchor: "center",
+      yanchor: "bottom"
+    });
+  });
+
+  const sep1X = (frontPositions[frontPositions.length - 1] + interPositions[0]) / 2;
+  const sep2X = (interPositions[interPositions.length - 1] + rearPositions[0]) / 2;
+
+  annotations.push(
+    {
+      x: (frontPositions[0] + frontPositions[frontPositions.length - 1]) / 2,
+      y: 38,
+      text: "<b>Front electrode</b>",
+      showarrow: false,
+      font: { size: 14, color: "#111111" },
+      xanchor: "center",
+      yanchor: "bottom"
     },
-    hovertemplate: "Thickness: %{y:.2f} nm<extra></extra>"
+    {
+      x: (interPositions[0] + interPositions[interPositions.length - 1]) / 2,
+      y: 38,
+      text: "<b>Interconnection electrode</b>",
+      showarrow: false,
+      font: { size: 14, color: "#111111" },
+      xanchor: "center",
+      yanchor: "bottom"
+    },
+    {
+      x: (rearPositions[0] + rearPositions[rearPositions.length - 1]) / 2,
+      y: 38,
+      text: "<b>Rear electrode</b>",
+      showarrow: false,
+      font: { size: 14, color: "#111111" },
+      xanchor: "center",
+      yanchor: "bottom"
+    }
+  );
+
+  const layout = {
+    autosize: true,
+    height: 620,
+    paper_bgcolor: "#ffffff",
+    plot_bgcolor: "#ffffff",
+    margin: { l: 70, r: 30, t: 28, b: 140 },
+    font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
+    xaxis: {
+      tickmode: "array",
+      tickvals: positions,
+      ticktext: cats,
+      tickangle: 60,
+      range: [positions[0] - 1, positions[positions.length - 1] + 1],
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false
+    },
+    yaxis: {
+      title: "Power conversion efficiency (%)",
+      range: [10, 40],
+      dtick: 5,
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false
+    },
+    shapes: [
+      {
+        type: "line",
+        x0: sep1X,
+        x1: sep1X,
+        y0: 10,
+        y1: 36,
+        line: { color: "#b0b0b0", width: 1.2, dash: "dash" }
+      },
+      {
+        type: "line",
+        x0: sep2X,
+        x1: sep2X,
+        y0: 10,
+        y1: 36,
+        line: { color: "#b0b0b0", width: 1.2, dash: "dash" }
+      }
+    ],
+    annotations,
+    legend: {
+      orientation: "h",
+      x: 0.5,
+      y: -0.28,
+      xanchor: "center",
+      yanchor: "top",
+      bordercolor: "#000000",
+      borderwidth: 1
+    }
+  };
+
+  Plotly.react(plotDiv, [...legendTraces, ...violinTraces], layout, {
+    responsive: true,
+    displayModeBar: true
   });
-
-  traces.push({
-    type: "scatter",
-    mode: "text",
-    x: [xPos],
-    y: [Math.min(Math.max(...vals) + 0.03 * ymax, ymax * 0.88)],
-    xaxis: axis.x,
-    yaxis: axis.y,
-    showlegend: false,
-    text: [`n = ${vals.length}<br>median = ${median(vals).toFixed(1)}`],
-    textposition: "top center",
-    hoverinfo: "skip",
-    textfont: { size: 12, color: "#111111" }
-  });
-});
-
-traces.push({
-  type: "scatter",
-  mode: "text",
-  x: [0.5],
-  y: [ymax * 0.95],
-  xaxis: axis.x,
-  yaxis: axis.y,
-  showlegend: false,
-  text: [`<b>${sec.label}</b>`],
-  hoverinfo: "skip",
-  textposition: "top center",
-  textfont: { size: 14, color: "#111111" }
-});
-
-});
-
-function median(arr) {if (!arr.length) return NaN;const a = arr.slice().sort((x, y) => x - y);const mid = Math.floor(a.length / 2);return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;}
-
-const layout = {autosize: true,height: 620,paper_bgcolor: "#ffffff",plot_bgcolor: "#ffffff",margin: { l: 70, r: 30, t: 28, b: 140 },font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
-
-xaxis: {
-  domain: xDomains[0],
-  anchor: "y",
-  tickmode: "array",
-  tickvals: [0, 1],
-  ticktext: subgroups,
-  tickangle: 0,
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false
-},
-xaxis2: {
-  domain: xDomains[1],
-  anchor: "y2",
-  tickmode: "array",
-  tickvals: [0, 1],
-  ticktext: subgroups,
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false
-},
-xaxis3: {
-  domain: xDomains[2],
-  anchor: "y3",
-  tickmode: "array",
-  tickvals: [0, 1],
-  ticktext: subgroups,
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false
-},
-xaxis4: {
-  domain: xDomains[3],
-  anchor: "y4",
-  tickmode: "array",
-  tickvals: [0, 1],
-  ticktext: subgroups,
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false
-},
-
-yaxis: {
-  anchor: "free",
-  position: xDomains[0][0],
-  title: "TCE thickness (nm)",
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false,
-  automargin: true
-},
-yaxis2: {
-  anchor: "free",
-  position: xDomains[1][0],
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false,
-  automargin: true
-},
-yaxis3: {
-  anchor: "free",
-  position: xDomains[2][0],
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false,
-  automargin: true
-},
-yaxis4: {
-  anchor: "free",
-  position: xDomains[3][0],
-  showline: true,
-  linecolor: "#222222",
-  zeroline: false,
-  automargin: true
 }
-
-};
-
-Plotly.react(plotDiv, [...legendTraces, ...traces], layout, {responsive: true,displayModeBar: true});}
