@@ -24,8 +24,6 @@ function renderViolinThicknessPlot(rows) {
   if (minEffValueEl) {
     minEffValueEl.textContent = MIN_EFF.toFixed(1);
   }
-  
-  if (efficiency < MIN_EFF) return null;
 
   const normalize = (value) =>
     String(value ?? "")
@@ -67,7 +65,7 @@ function renderViolinThicknessPlot(rows) {
     .map((row) => {
       const efficiency = getEfficiency(row);
       if (!Number.isFinite(efficiency)) return null;
-      if (efficiency <= MIN_EFF) return null;
+      if (efficiency < MIN_EFF) return null;
       if (getCell(row).includes("not clear")) return null;
 
       const front = getThickness(row, [
