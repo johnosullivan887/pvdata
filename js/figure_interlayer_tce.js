@@ -15,34 +15,46 @@ function renderInterlayerTcePlot(rows) {
 
   const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
 
-  const plotRows = rows
-  .map((row) => {
+  const toDateString = (row) => {
     const dateText = base.resolveField(row, ["Publishing date", "Date"]);
-    const yearText = base.getYear(row);
-    const date =
-      base.parseDate(dateText) ||
-      (yearText ? new Date(Number(yearText), 0, 1) : null);
+    const yearText = String(base.getYear(row) ?? "").trim();
 
-    const efficiency = base.getEfficiency(row);
-    const rawLabel = tax.normalizeText(base.resolveField(row, ["Interlayer TCE", "Inter-layer"]));
-    const family = tax.familyFromInterlayer(rawLabel);
+    const parsed = base.parseDate(dateText);
+    if (parsed && !isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
 
-    if (!Number.isFinite(efficiency) || !family) return null;
+    const yearMatch = yearText.match(/(19|20)\d{2}/);
+    if (yearMatch) {
+      return new Date(Number(yearMatch[0]), 0, 1).toISOString();
+    }
 
-    return {
-      date,
-      efficiency,
-      rawLabel,
-      family,
-      certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
-      author: base.getAuthor(row),
-      year: yearText,
-      paperUrl: base.getPaperUrl(row)
-    };
-  })
-  .filter(Boolean);
- 
-  
+    return null;
+  };
+
+  const plotRows = rows
+    .map((row) => {
+      const date = toDateString(row);
+      const efficiency = base.getEfficiency(row);
+      const rawLabel = tax.normalizeText(
+        base.resolveField(row, ["Interlayer TCE", "Inter-layer"])
+      );
+      const family = tax.familyFromInterlayer(rawLabel);
+
+      if (!date || !Number.isFinite(efficiency) || !family) return null;
+
+      return {
+        date,
+        efficiency,
+        rawLabel,
+        family,
+        certified: base.keyify(base.resolveField(row, ["Certified", "certified"])),
+        author: base.getAuthor(row),
+        year: base.getYear(row),
+        paperUrl: base.getPaperUrl(row)
+      };
+    })
+    .filter(Boolean);
 
   const familyCounts = plotRows.reduce((acc, row) => {
     acc[row.family] = (acc[row.family] || 0) + 1;
@@ -133,9 +145,10 @@ function renderInterlayerTcePlot(rows) {
     },
     xaxis: {
       title: "Publication date",
+      type: "date",
       tickformat: "%Y",
       dtick: "M12",
-      range: [base.parseDate("2015-07-07"), base.parseDate("2025-12-12")],
+      range: ["2015-07-07", "2025-12-12"],
       showline: true,
       linecolor: "#666666",
       zeroline: false,
@@ -156,9 +169,9 @@ function renderInterlayerTcePlot(rows) {
     },
     legend: {
       orientation: "v",
-      x: 0.98,
+      x: 0.02,
       y: 0.98,
-      xanchor: "right",
+      xanchor: "left",
       yanchor: "top",
       bgcolor: "rgba(255,255,255,1)",
       bordercolor: "#d0d0d0",
