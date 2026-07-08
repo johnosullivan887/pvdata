@@ -22,7 +22,6 @@ function renderInterlayerTimelinePlot(rows) {
     rows,
     plotDivId: "interlayer-timeline-plot",
     certifiedCheckboxId: "certified-only-interlayer-timeline",
-    title: "Interconnection TCE adoption timeline",
     categories,
     classifyRow: (row) => {
       const raw = base.resolveField(row, ["Interlayer TCE", "Inter-layer"]);
