@@ -19,6 +19,14 @@ function renderViolinGroupsPlot(rows) {
     "#FACCFA"
   ];
 
+  const MIN_EFF = Number(document.getElementById("certified-only-violin-groups)?.value ?? 0);
+  const minEffValueEl = document.getElementById("certified-only-violin-groups");
+  if (minEffValueEl) {
+    minEffValueEl.textContent = MIN_EFF.toFixed(1);
+  }
+  
+  if (efficiency < MIN_EFF) return null;
+
   const normalize = (value) =>
     String(value ?? "")
       .trim()
@@ -107,6 +115,7 @@ function renderViolinGroupsPlot(rows) {
     return "Other";
   };
 
+  
   const getRearCat = (row) =>
     classifyRear(getValue(row, "Rear electrode", "Rear Electrode"));
 
