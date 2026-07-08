@@ -162,14 +162,14 @@ function renderCombinationHeatmap(rows) {
   ];
 
   const xDomains = [
-    [0.00, 0.31],
-    [0.35, 0.66],
+    [0.00, 0.30],
+    [0.355, 0.645],
     [0.70, 1.00]
   ];
 
   const yDomains = [
-    [0.54, 1.00],
-    [0.00, 0.46]
+    [0.56, 1.00],
+    [0.00, 0.44]
   ];
 
   const subplotTitles = [
@@ -265,36 +265,41 @@ function renderCombinationHeatmap(rows) {
 
   const layout = {
     autosize: true,
-    height: 760,
+    height: 860,
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
-    margin: { l: 95, r: 40, t: 40, b: 110 },
+    margin: { l: 105, r: 90, t: 70, b: 125 },
     font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
     annotations,
     xaxis: {
       domain: xDomains[0],
       anchor: "y",
-      title: "Rear TCE",
+      title: "Rear TCE Family",
       tickangle: -35,
+      tickfont: { size: 10 },
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true
+      automargin: true,
+      showticklabels: false
     },
     yaxis: {
       domain: yDomains[0],
       anchor: "x",
-      title: "Front TCE",
+      title: "Front TCE Family",
+      tickfont: { size: 10 },
       autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true
+      automargin: true,
+      showticklabels: false
     },
     xaxis2: {
       domain: xDomains[1],
       anchor: "y2",
       tickangle: -35,
+      tickfont: { size: 10 },
       showline: true,
       linecolor: "#222222",
       zeroline: false,
@@ -303,6 +308,7 @@ function renderCombinationHeatmap(rows) {
     yaxis2: {
       domain: yDomains[0],
       anchor: "x2",
+      tickfont: { size: 10 },
       autorange: "reversed",
       showline: true,
       linecolor: "#222222",
@@ -312,6 +318,7 @@ function renderCombinationHeatmap(rows) {
     xaxis3: {
       domain: xDomains[2],
       anchor: "y3",
+      tickfont: { size: 10 },
       tickangle: -35,
       showline: true,
       linecolor: "#222222",
@@ -321,6 +328,7 @@ function renderCombinationHeatmap(rows) {
     yaxis3: {
       domain: yDomains[0],
       anchor: "x3",
+      tickfont: { size: 10 },
       autorange: "reversed",
       showline: true,
       linecolor: "#222222",
@@ -330,6 +338,7 @@ function renderCombinationHeatmap(rows) {
     xaxis4: {
       domain: xDomains[0],
       anchor: "y4",
+      tickfont: { size: 10 },
       tickangle: -35,
       showline: true,
       linecolor: "#222222",
@@ -339,6 +348,7 @@ function renderCombinationHeatmap(rows) {
     yaxis4: {
       domain: yDomains[1],
       anchor: "x4",
+      tickfont: { size: 10 },
       autorange: "reversed",
       showline: true,
       linecolor: "#222222",
@@ -348,6 +358,7 @@ function renderCombinationHeatmap(rows) {
     xaxis5: {
       domain: xDomains[1],
       anchor: "y5",
+      tickfont: { size: 10 },
       tickangle: -35,
       showline: true,
       linecolor: "#222222",
@@ -357,6 +368,7 @@ function renderCombinationHeatmap(rows) {
     yaxis5: {
       domain: yDomains[1],
       anchor: "x5",
+      tickfont: { size: 10 },
       autorange: "reversed",
       showline: true,
       linecolor: "#222222",
@@ -366,6 +378,7 @@ function renderCombinationHeatmap(rows) {
     xaxis6: {
       domain: xDomains[2],
       anchor: "y6",
+      tickfont: { size: 10 },
       tickangle: -35,
       showline: true,
       linecolor: "#222222",
@@ -375,6 +388,7 @@ function renderCombinationHeatmap(rows) {
     yaxis6: {
       domain: yDomains[1],
       anchor: "x6",
+      tickfont: { size: 10 },
       autorange: "reversed",
       showline: true,
       linecolor: "#222222",
