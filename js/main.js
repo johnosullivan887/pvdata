@@ -269,7 +269,7 @@ function renderDatabaseTable() {
   const filters = getDatabaseFilters();
   const filteredRows = databaseRows.filter((row) => rowMatchesDatabase(row, filters));
   window.filteredDatabaseRows = filteredRows;
-  
+
   summaryEl.innerHTML = `
     Showing <strong>${filteredRows.length}</strong> of <strong>${databaseRows.length}</strong> rows.
   `;
@@ -461,56 +461,6 @@ function renderTceMaterialFigures() {
   if (typeof renderRearTcePlot === "function") renderRearTcePlot(tableData);
 }
 
-document.addEventListener("change", (event) => {
-  const id = event.target?.id;
-
-  if (id === "certified-only-tce") {
-    renderTceMaterialFigures();
-    return;
-  }
-
-  if (id === "certified-only-violin-groups") {
-    renderViolinGroupsPlot(tableData);
-    return;
-  }
-
-  if (id === "certified-only-violin-thickness") {
-    renderViolinThicknessPlot(tableData);
-    return;
-  }
-
-  if (id === "certified-only-heatmap") {
-    renderCombinationHeatmap(tableData);
-    return;
-  }
-
-  if (id === "certified-only-timeline") {
-    renderTimelinePlot(tableData);
-    return;
-  }
-
-  if (id === "certified-only-interlayer-timeline") {
-    renderInterlayerTimelinePlot(tableData);
-    return;
-  }
-
-  if (id === "certified-only-rear-timeline") {
-    renderRearTimelinePlot(tableData);
-    return;
-  }
-
-  if (id === "certified-only-bottom-cell-timeline") {
-    renderBottomCellTimelinePlot(tableData);
-    return;
-  }
-});
-
-document.addEventListener("input", (event) => {
-  if (event.target && event.target.id === "violin-thickness-min-eff") {
-    renderViolinThicknessPlot(tableData);
-  }
-});
-
 function bindDownloadButtons() {
   if (!window.PVDataDownload) return;
 
@@ -544,18 +494,6 @@ function bindDownloadButtons() {
     () => window.filteredRearTceRows || []
   );
 }
-
-document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "certified-only-tce") {
-    renderTceMaterialFigures();
-  }
-});
-
-document.addEventListener("input", (event) => {
-  if (event.target && event.target.id === "violin-thickness-min-eff") {
-    renderViolinThicknessPlot(tableData);
-  }
-});
 
 document.addEventListener("change", (event) => {
   const id = event.target?.id;
@@ -630,48 +568,5 @@ async function loadData() {
     }
   }
 }
-document
-  .getElementById("download-database-filtered")
-  ?.addEventListener("click", () => {
-    downloadCSV(
-      "PVData_filtered_database.csv",
-      window.filteredDatabaseRows || []
-    );
-  });
-
-function bindDownloadButtons() {
-  if (!window.PVDataDownload) return;
-
-  window.PVDataDownload.bindButton(
-    "download-database-filtered",
-    "PVData_database_filtered.csv",
-    () => window.filteredDatabaseRows || []
-  );
-
-  window.PVDataDownload.bindButton(
-    "download-indium-filtered",
-    "PVData_indium_filtered.csv",
-    () => window.filteredIndiumRows || []
-  );
-
-  window.PVDataDownload.bindButton(
-    "download-front-tce-filtered",
-    "PVData_front_tce_filtered.csv",
-    () => window.filteredFrontTceRows || []
-  );
-
-  window.PVDataDownload.bindButton(
-    "download-interlayer-tce-filtered",
-    "PVData_interlayer_tce_filtered.csv",
-    () => window.filteredInterlayerTceRows || []
-  );
-
-  window.PVDataDownload.bindButton(
-    "download-rear-tce-filtered",
-    "PVData_rear_tce_filtered.csv",
-    () => window.filteredRearTceRows || []
-  );
-}
 
 loadData();
-bindDownloadButtons();
