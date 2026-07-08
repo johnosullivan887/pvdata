@@ -234,6 +234,7 @@ function renderIndiumPlot(rows) {
     if (Number.isFinite(row.yearNum) && row.yearNum > maxYear) return false;
     if (!enabledCells.has(row.cellType)) return false;
     return true;
+    window.filteredIndiumRows = visibleRows;
   });
 
   const cellOrder = ["SHJ", "TOPCon/POLO", "Al-BSF/PERC", "Other"];
