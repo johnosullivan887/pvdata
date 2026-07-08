@@ -12,15 +12,9 @@ function renderCombinationHeatmap(rows) {
   plotDiv.style.height = "760px";
 
   const certifiedOnly =
-    document.getElementById("certified-only-heatmap")?.checked ?? false;
-
-  const MIN_EFF = Number(document.getElementById("certified-only-heatmap")?.value ?? 0);
-  const minEffValueEl = document.getElementById("certified-only-heatmap");
-  if (minEffValueEl) {
-    minEffValueEl.textContent = MIN_EFF.toFixed(1);
-  }
-  
-  if (efficiency < MIN_EFF) return null;
+    document.getElementById("certified-only-heatmap")?.checked ??
+    document.getElementById("certified-only")?.checked ??
+    false;
 
   const normalize = (value) =>
     String(value ?? "")
@@ -30,14 +24,25 @@ function renderCombinationHeatmap(rows) {
   const keyify = (value) =>
     normalize(value).toLowerCase().replace(/\s+/g, "");
 
-  const classifyInterlayer = (row) => {
+  const getFrontFamily = (row) =>
+    tax.familyFromFront(getValue(row, "Front TCE (fTCE)", "Front TCO"));
+
+  const getRearFamily = (row) =>
+    tax.familyFromRear(getValue(row, "Rear electrode", "Rear Electrode"));
+
+  const getInterFamily = (row) => {
     const raw = normalize(getValue(row, "Interlayer TCE", "Inter-layer"));
     const k = keyify(raw);
 
     if (!k) return null;
 
-    if (k.includes("notclear") || k.includes("unclear")) return "Unclear / other";
-    if (k.includes("none") || k.includes("nolayer") || k.includes("notce")) return "None";
+    if (k.includes("notclear") || k.includes("unclear") || k.includes("other")) {
+      return "Other / unclear";
+    }
+
+    if (k.includes("nolayer") || k.includes("none") || k.includes("notce")) {
+      return "None";
+    }
 
     if (k.includes("ito")) return "ITO";
     if (k.includes("izo")) return "IZO";
@@ -111,58 +116,39 @@ function renderCombinationHeatmap(rows) {
 
   const visibleRows = rows
     .map((row) => ({
-      front: tax.familyFromFront(getValue(row, "Front TCE (fTCE)", "Front TCO")),
-      rear: tax.familyFromRear(getValue(row, "Rear electrode", "Rear Electrode")),
-      inter: classifyInterlayer(row),
-      certified: String(getValue(row, "Certified", "certified")).trim().toLowerCase()
+      front: getFrontFamily(row),
+      rear: getRearFamily(row),
+      inter: getInterFamily(row),
+      certified: baseKey(getValue(row, "Certified", "certified"))
     }))
     .filter((row) => row.front && row.rear && row.inter)
     .filter((row) => (certifiedOnly ? row.certified === "yes" : true));
+
+  function baseKey(value) {
+    return String(value ?? "").trim().toLowerCase();
+  }
 
   if (!visibleRows.length) {
     plotDiv.innerHTML = "<p>No rows match the current filters.</p>";
     return;
   }
 
-  function buildCountMatrix(subset) {
-    const countMap = new Map();
-
-    subset.forEach((row) => {
-      const key = `${row.front}|||${row.rear}`;
-      countMap.set(key, (countMap.get(key) || 0) + 1);
-    });
-
-    return frontCats.map((front) =>
-      rearCats.map((rear) => countMap.get(`${front}|||${rear}`) || 0)
+  function countMatrix(frontList, rearList, subset) {
+    return frontList.map((front) =>
+      rearList.map(
+        (rear) =>
+          subset.filter((row) => row.front === front && row.rear === rear).length
+      )
     );
   }
 
-  const subplotData = interCats.map((interLabel) => {
-    const subset = visibleRows.filter((row) => row.inter === interLabel);
-    const counts = buildCountMatrix(subset);
-    const maxCount = Math.max(...counts.flat(), 0);
-
-    return {
-      interLabel,
-      subset,
-      counts,
-      maxCount,
-      logCounts: counts.map((row) => row.map((v) => Math.log10(v + 1)))
-    };
-  });
-
-  const globalMaxCount = Math.max(...subplotData.map((d) => d.maxCount), 0);
-  if (globalMaxCount === 0) {
-    plotDiv.innerHTML = "<p>No rows match the current filters.</p>";
-    return;
+  function logMatrix(counts) {
+    return counts.map((row) => row.map((v) => Math.log10(v + 1)));
   }
 
-  const globalMaxLog = Math.log10(globalMaxCount + 1);
-
-  const tickCandidates = [0, 1, 2, 5, 10, 20, 50, 100];
-  const tickPairs = tickCandidates
-    .map((count) => ({ count, log: Math.log10(count + 1) }))
-    .filter((item) => item.log <= globalMaxLog + 1e-9);
+  function maxCount(counts) {
+    return Math.max(...counts.flat(), 0);
+  }
 
   const colorscale = [
     [0.0, "#f7fbff"],
@@ -177,8 +163,8 @@ function renderCombinationHeatmap(rows) {
 
   const xDomains = [
     [0.00, 0.31],
-    [0.345, 0.655],
-    [0.69, 1.00]
+    [0.35, 0.66],
+    [0.70, 1.00]
   ];
 
   const yDomains = [
@@ -195,6 +181,29 @@ function renderCombinationHeatmap(rows) {
     "None"
   ];
 
+  const subplotData = interCats.map((interLabel) => {
+    const subset = visibleRows.filter((row) => row.inter === interLabel);
+    const counts = countMatrix(frontCats, rearCats, subset);
+    return {
+      interLabel,
+      subset,
+      counts,
+      logCounts: logMatrix(counts),
+      maxCount: maxCount(counts)
+    };
+  });
+
+  const globalMaxCount = Math.max(...subplotData.map((d) => d.maxCount), 1);
+  const globalMaxLog = Math.log10(globalMaxCount + 1);
+
+  const tickCounts = [0, 1, 2, 5, 10, 20, 50, 100];
+  const tickVals = tickCounts
+    .map((v) => Math.log10(v + 1))
+    .filter((v) => v <= globalMaxLog + 1e-9);
+  const tickText = tickCounts
+    .map((v) => String(v))
+    .slice(0, tickVals.length);
+
   const traces = [];
   const annotations = [];
 
@@ -203,22 +212,21 @@ function renderCombinationHeatmap(rows) {
     const row = i < 3 ? 0 : 1;
     const xaxisName = i === 0 ? "x" : `x${i + 1}`;
     const yaxisName = i === 0 ? "y" : `y${i + 1}`;
+
     const xDomain = xDomains[col];
     const yDomain = yDomains[row];
-
-    const counts = block.counts;
-    const texts = counts.map((r) => r.map((v) => (v > 0 ? String(v) : "")));
 
     traces.push({
       type: "heatmap",
       x: rearCats,
       y: frontCats,
       z: block.logCounts,
-      customdata: counts,
-      text: texts,
+      customdata: countMatrix(frontCats, rearCats, block.subset),
+      text: countMatrix(frontCats, rearCats, block.subset).map((r) =>
+        r.map((v) => (v > 0 ? String(v) : ""))
+      ),
       texttemplate: "%{text}",
       textfont: { size: 10, color: "#111111" },
-      hoverongaps: false,
       colorscale,
       zmin: 0,
       zmax: globalMaxLog,
@@ -226,24 +234,25 @@ function renderCombinationHeatmap(rows) {
       colorbar: i === subplotData.length - 1 ? {
         title: "Count<br>(log scale)",
         tickmode: "array",
-        tickvals: tickPairs.map((p) => p.log),
-        ticktext: tickPairs.map((p) => String(p.count)),
+        tickvals: tickVals,
+        ticktext: tickText,
         thickness: 18,
         outlinewidth: 0.8,
         outlinecolor: "#222222"
       } : undefined,
-      xaxis: xaxisName,
-      yaxis: yaxisName,
       hovertemplate:
         "Interlayer: " + block.interLabel + "<br>" +
         "Front: %{y}<br>" +
         "Rear: %{x}<br>" +
-        "Count: %{customdata}<extra></extra>"
+        "Count: %{customdata}<extra></extra>",
+      xaxis: xaxisName,
+      yaxis: yaxisName,
+      hoverongaps: false
     });
 
     annotations.push({
       x: (xDomain[0] + xDomain[1]) / 2,
-      y: row === 0 ? 0.99 : 0.45,
+      y: yDomain[1] + 0.04,
       xref: "paper",
       yref: "paper",
       text: `<b>${subplotTitles[i]}</b>`,
@@ -259,29 +268,28 @@ function renderCombinationHeatmap(rows) {
     height: 760,
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
-    margin: { l: 100, r: 55, t: 55, b: 95 },
+    margin: { l: 95, r: 40, t: 40, b: 110 },
     font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
     annotations,
     xaxis: {
       domain: xDomains[0],
       anchor: "y",
-      title: "Rear TCE family",
+      title: "Rear TCE",
       tickangle: -35,
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     },
     yaxis: {
       domain: yDomains[0],
       anchor: "x",
-      title: "Front TCE family",
+      title: "Front TCE",
+      autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: true
+      automargin: true
     },
     xaxis2: {
       domain: xDomains[1],
@@ -290,17 +298,16 @@ function renderCombinationHeatmap(rows) {
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     },
     yaxis2: {
       domain: yDomains[0],
       anchor: "x2",
+      autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     },
     xaxis3: {
       domain: xDomains[2],
@@ -309,37 +316,34 @@ function renderCombinationHeatmap(rows) {
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     },
     yaxis3: {
       domain: yDomains[0],
       anchor: "x3",
+      autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     },
     xaxis4: {
       domain: xDomains[0],
       anchor: "y4",
-      title: "Rear TCE family",
       tickangle: -35,
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: true
+      automargin: true
     },
     yaxis4: {
       domain: yDomains[1],
       anchor: "x4",
+      autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: true
+      automargin: true
     },
     xaxis5: {
       domain: xDomains[1],
@@ -348,17 +352,16 @@ function renderCombinationHeatmap(rows) {
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: true
+      automargin: true
     },
     yaxis5: {
       domain: yDomains[1],
       anchor: "x5",
+      autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     },
     xaxis6: {
       domain: xDomains[2],
@@ -367,17 +370,16 @@ function renderCombinationHeatmap(rows) {
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: true
+      automargin: true
     },
     yaxis6: {
       domain: yDomains[1],
       anchor: "x6",
+      autorange: "reversed",
       showline: true,
       linecolor: "#222222",
       zeroline: false,
-      automargin: true,
-      showticklabels: false
+      automargin: true
     }
   };
 
