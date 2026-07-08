@@ -24,7 +24,7 @@ function renderViolinThicknessPlot(rows) {
   if (minEffValueEl) {
     minEffValueEl.textContent = MIN_EFF.toFixed(1);
   }
-  
+
   const normalize = (value) =>
     String(value ?? "")
       .trim()
@@ -58,7 +58,8 @@ function renderViolinThicknessPlot(rows) {
 
   const getThickness = (row, keys) => toNumber(getValue(row, ...keys));
 
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? false;
+  const certifiedOnly =
+    document.getElementById("certified-only-violin-thickness")?.checked ?? false;
 
   const cleanRows = rows
     .map((row) => {
@@ -107,6 +108,8 @@ function renderViolinThicknessPlot(rows) {
   const visibleRows = certifiedOnly
     ? cleanRows.filter((row) => row.certified === "yes")
     : cleanRows;
+
+  window.filteredViolinThicknessRows = visibleRows;
 
   const subgroups = ["SHJ", "TOPCon/POLO"];
   const groupColors = {
@@ -208,9 +211,10 @@ function renderViolinThicknessPlot(rows) {
         hovertemplate: "Thickness: %{y:.2f} nm<extra></extra>"
       });
 
-      const sampled = vals.length > 200
-        ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200)
-        : vals;
+      const sampled =
+        vals.length > 200
+          ? vals.slice().sort(() => 0.5 - Math.random()).slice(0, 200)
+          : vals;
 
       const jitter = sampled.map(() => (Math.random() - 0.5) * 0.16);
 
@@ -261,90 +265,90 @@ function renderViolinThicknessPlot(rows) {
     });
   });
 
-const layout = {
-  autosize: true,
-  height: 620,
-  paper_bgcolor: "#ffffff",
-  plot_bgcolor: "#ffffff",
-  margin: { l: 70, r: 30, t: 28, b: 140 },
-  font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
+  const layout = {
+    autosize: true,
+    height: 620,
+    paper_bgcolor: "#ffffff",
+    plot_bgcolor: "#ffffff",
+    margin: { l: 70, r: 30, t: 28, b: 140 },
+    font: { family: "Arial, sans-serif", size: 12, color: "#111111" },
 
-  xaxis: {
-    domain: xDomains[0],
-    anchor: "y",
-    tickmode: "array",
-    tickvals: [0, 1],
-    ticktext: subgroups,
-    tickangle: 0,
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false
-  },
-  xaxis2: {
-    domain: xDomains[1],
-    anchor: "y2",
-    tickmode: "array",
-    tickvals: [0, 1],
-    ticktext: subgroups,
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false
-  },
-  xaxis3: {
-    domain: xDomains[2],
-    anchor: "y3",
-    tickmode: "array",
-    tickvals: [0, 1],
-    ticktext: subgroups,
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false
-  },
-  xaxis4: {
-    domain: xDomains[3],
-    anchor: "y4",
-    tickmode: "array",
-    tickvals: [0, 1],
-    ticktext: subgroups,
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false
-  },
+    xaxis: {
+      domain: xDomains[0],
+      anchor: "y",
+      tickmode: "array",
+      tickvals: [0, 1],
+      ticktext: subgroups,
+      tickangle: 0,
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false
+    },
+    xaxis2: {
+      domain: xDomains[1],
+      anchor: "y2",
+      tickmode: "array",
+      tickvals: [0, 1],
+      ticktext: subgroups,
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false
+    },
+    xaxis3: {
+      domain: xDomains[2],
+      anchor: "y3",
+      tickmode: "array",
+      tickvals: [0, 1],
+      ticktext: subgroups,
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false
+    },
+    xaxis4: {
+      domain: xDomains[3],
+      anchor: "y4",
+      tickmode: "array",
+      tickvals: [0, 1],
+      ticktext: subgroups,
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false
+    },
 
-  yaxis: {
-    anchor: "free",
-    position: xDomains[0][0],
-    title: "TCE thickness (nm)",
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false,
-    automargin: true
-  },
-  yaxis2: {
-    anchor: "free",
-    position: xDomains[1][0],
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false,
-    automargin: true
-  },
-  yaxis3: {
-    anchor: "free",
-    position: xDomains[2][0],
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false,
-    automargin: true
-  },
-  yaxis4: {
-    anchor: "free",
-    position: xDomains[3][0],
-    showline: true,
-    linecolor: "#222222",
-    zeroline: false,
-    automargin: true
-  }
-};
+    yaxis: {
+      anchor: "free",
+      position: xDomains[0][0],
+      title: "TCE thickness (nm)",
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false,
+      automargin: true
+    },
+    yaxis2: {
+      anchor: "free",
+      position: xDomains[1][0],
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false,
+      automargin: true
+    },
+    yaxis3: {
+      anchor: "free",
+      position: xDomains[2][0],
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false,
+      automargin: true
+    },
+    yaxis4: {
+      anchor: "free",
+      position: xDomains[3][0],
+      showline: true,
+      linecolor: "#222222",
+      zeroline: false,
+      automargin: true
+    }
+  };
 
   Plotly.react(plotDiv, [...legendTraces, ...traces], layout, {
     responsive: true,
