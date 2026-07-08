@@ -69,6 +69,7 @@ function renderRearTcePlot(rows) {
   const visibleRows = certifiedOnly
     ? plotRows.filter((row) => row.certified === "yes")
     : plotRows;
+  window.filteredRearTceRows = visibleRows;
 
   const legendTraces = allFamilies
     .filter((family) => visibleRows.some((row) => row.family === family))
