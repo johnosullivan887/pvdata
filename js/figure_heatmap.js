@@ -233,7 +233,7 @@ function renderCombinationHeatmap(rows) {
       zmax: globalMaxLog,
       showscale: i === subplotData.length - 1,
       colorbar: i === subplotData.length - 1 ? {
-        title: "Count<br>(log scale)",
+        title: "Count",
         tickmode: "array",
         tickvals: tickVals,
         ticktext: tickText,
