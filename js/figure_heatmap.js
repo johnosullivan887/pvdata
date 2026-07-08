@@ -266,7 +266,7 @@ function renderCombinationHeatmap(rows) {
 
   const layout = {
     autosize: true,
-    height: 860,
+    height: 1500,
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     margin: { l: 100, r: 80, t: 55, b: 90 },
