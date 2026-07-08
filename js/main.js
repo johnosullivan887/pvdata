@@ -496,6 +496,12 @@ function bindDownloadButtons() {
 }
 
 document.addEventListener("change", (event) => {
+  if (event.target && event.target.id === "certified-only") {
+    renderAllFigures();
+  }
+});
+
+document.addEventListener("change", (event) => {
   const id = event.target?.id;
 
   if (id === "certified-only-tce") {
