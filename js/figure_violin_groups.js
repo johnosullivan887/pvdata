@@ -50,38 +50,30 @@ function renderViolinGroupsPlot(rows) {
     return "Other";
   };
 
-  const getFront = (row) => {
-    const v = toNumber(
-      getValue(
-        row,
-        "Total front TCO thickness",
-        "Front TCO thickness",
-        "fTCE thickness (nm)",
-        "Front TCO thickness (nm)"
-      )
-    );
-    return Number.isFinite(v) ? v : null;
-  };
+  const getThickness = (row, keys) => toNumber(getValue(row, ...keys));
 
-  const getInter = (row) => {
-    const v = toNumber(
-      getValue(
-        row,
-        "Inter-layer thicknes",
-        "Inter-layer thickness",
-        "IL thickness (nm)",
-        "Interlayer thickness"
-      )
-    );
-    return Number.isFinite(v) ? v : null;
-  };
+  const getFront = (row) =>
+    getThickness(row, [
+      "Total front TCO thickness",
+      "Front TCO thickness",
+      "fTCE thickness (nm)",
+      "Front TCO thickness (nm)"
+    ]);
 
-  const getRear = (row) => {
-    const v = toNumber(
-      getValue(row, "Rear TCO thickness", "Rear TCE thickness (nm)", "Rear TCO thickness (nm)")
-    );
-    return Number.isFinite(v) ? v : null;
-  };
+  const getInter = (row) =>
+    getThickness(row, [
+      "Inter-layer thicknes",
+      "Inter-layer thickness",
+      "IL thickness (nm)",
+      "Interlayer thickness"
+    ]);
+
+  const getRear = (row) =>
+    getThickness(row, [
+      "Rear TCO thickness",
+      "Rear TCE thickness (nm)",
+      "Rear TCO thickness (nm)"
+    ]);
 
   const certifiedOnly =
     document.getElementById("certified-only-violin-groups")?.checked ?? false;
