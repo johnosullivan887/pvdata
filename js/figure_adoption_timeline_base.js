@@ -38,15 +38,13 @@ const PVDataAdoptionTimeline = (() => {
 
   function isCertified(row) {
     const v = resolveField(row, ["Certified (yes/no)", "Certified", "certified"]);
-    const s = String(v ?? "").trim().toLowerCase();
-    return s === "yes";
+    return String(v ?? "").trim().toLowerCase() === "yes";
   }
 
   function renderStackedAdoptionTimeline({
     rows,
     plotDivId,
     certifiedCheckboxId,
-    title,
     categories,
     classifyRow,
     colorMap,
@@ -123,17 +121,11 @@ const PVDataAdoptionTimeline = (() => {
       height: 420,
       paper_bgcolor: "#ffffff",
       plot_bgcolor: "#ffffff",
-      margin: { l: 65, r: 20, t: 28, b: 55 },
+      margin: { l: 65, r: 120, t: 18, b: 55 },
       font: {
         family: "Arial, sans-serif",
         size: 13,
         color: "#111111"
-      },
-      title: {
-        text: title,
-        x: 0,
-        xanchor: "left",
-        font: { size: 18 }
       },
       barmode: "stack",
       xaxis: {
