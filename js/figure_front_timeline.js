@@ -5,8 +5,14 @@ function renderTimelinePlot(rows) {
   plotDiv.style.width = "100%";
   plotDiv.style.height = "420px";
 
-  const certifiedOnly = document.getElementById("certified-only")?.checked ?? true;
-
+  const certifiedOnly = document.getElementById("certified-only-timeline")?.checked ?? true;
+  
+  const MIN_EFF = Number(document.getElementById("certified-only-timeline")?.value ?? 0);
+  const minEffValueEl = document.getElementById("certified-only-timeline");
+  if (minEffValueEl) {
+    minEffValueEl.textContent = MIN_EFF.toFixed(1);
+  }
+  
   const points = rows
     .map((row) => ({
       year: Number(getDatabaseYear(row)),
