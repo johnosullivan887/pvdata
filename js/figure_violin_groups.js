@@ -4,7 +4,7 @@ plotDiv.style.width = "100%";plotDiv.style.height = "620px";
 
 const colors = ["#011959","#0A285C","#103F60","#1C5A62","#3C6D56","#687B3E","#9D892B","#D29343","#F8A17B","#FDB7BC","#FACCFA"];
 
-const MIN_EFF = Number(document.getElementById("certified-only-violin-groups)?.value ?? 0);const minEffValueEl = document.getElementById("certified-only-violin-groups");if (minEffValueEl) {minEffValueEl.textContent = MIN_EFF.toFixed(1);}
+const MIN_EFF = Number(document.getElementById("certified-only-violin-groups")?.value ?? 0);const minEffValueEl = document.getElementById("certified-only-violin-groups");if (minEffValueEl) {minEffValueEl.textContent = MIN_EFF.toFixed(1);}
 
 if (efficiency < MIN_EFF) return null;
 
