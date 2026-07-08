@@ -19,8 +19,12 @@ function renderViolinThicknessPlot(rows) {
     "#FACCFA"
   ];
 
-  const MIN_EFF = 25;
-
+  const MIN_EFF = Number(document.getElementById("violin-thickness-min-eff")?.value ?? 0);
+  const minEffValueEl = document.getElementById("violin-thickness-min-eff-value");
+  if (minEffValueEl) {
+    minEffValueEl.textContent = MIN_EFF.toFixed(1);
+  }
+  
   const normalize = (value) =>
     String(value ?? "")
       .trim()
