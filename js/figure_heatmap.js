@@ -9,7 +9,7 @@ function renderCombinationHeatmap(rows) {
   }
 
   plotDiv.style.width = "100%";
-  plotDiv.style.height = "700px";
+  plotDiv.style.height = "800px";
 
   const certifiedOnly =
     document.getElementById("certified-only-heatmap")?.checked ??
@@ -266,7 +266,7 @@ function renderCombinationHeatmap(rows) {
 
   const layout = {
     autosize: true,
-    height: 1500,
+    height: 760,
     paper_bgcolor: "#ffffff",
     plot_bgcolor: "#ffffff",
     margin: { l: 100, r: 80, t: 55, b: 90 },
