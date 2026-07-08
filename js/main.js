@@ -18,7 +18,7 @@ navButtons.forEach((button) => {
 
     if (
       tableData.length &&
-      ["indium-use", "tce-materials", "evaluation"].includes(target)
+      ["indium-use", "tce-materials", "evaluation", "explorer"].includes(target)
     ) {
       renderAllFigures();
     }
@@ -453,6 +453,7 @@ function renderAllFigures() {
   if (typeof renderInterlayerTimelinePlot === "function") renderInterlayerTimelinePlot(tableData);
   if (typeof renderRearTimelinePlot === "function") renderRearTimelinePlot(tableData);
   if (typeof renderBottomCellTimelinePlot === "function") renderBottomCellTimelinePlot(tableData);
+  if (typeof renderExplorer === "function") renderExplorer(tableData);
 }
 
 function renderTceMaterialFigures() {
