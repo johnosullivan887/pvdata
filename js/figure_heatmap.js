@@ -9,7 +9,7 @@ function renderCombinationHeatmap(rows) {
   }
 
   plotDiv.style.width = "100%";
-  plotDiv.style.height = "760px";
+  plotDiv.style.height = "700px";
 
   const certifiedOnly =
     document.getElementById("certified-only-heatmap")?.checked ??
