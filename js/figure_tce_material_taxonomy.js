@@ -133,16 +133,23 @@ const TceMaterialTaxonomy = (() => {
 
     if (
       containsAnyPhrase(raw, [
-        "ito/izo",
-        "izo/ito",
         "siox",
         "si-based",
         "tj",
         "tunnel",
         "tisi2",
         "tiox",
+        "TiOx/TiNy",
         "tiny",
         "organic",
+        "n-n-p organic",
+        "nc-Si:H(n)",
+        "nc-Si:H(n/p)",
+        "nc-Si:H(p)",
+        "nc-Si:H(p/n)",
+        "nc-Si(n+)",
+        "poly-Si(n)",
+        "uc-Si:H(p/n)",
         "nc-siox",
         "nc-siox:h",
         "nc-siox(n)",
@@ -159,6 +166,8 @@ const TceMaterialTaxonomy = (() => {
     if (
       containsAnyPhrase(raw, [
         "ico",
+        "ito/izo",
+        "izo/ito",
         "inox",
         "iwo",
         "doped inox",
