@@ -496,8 +496,14 @@ function bindDownloadButtons() {
 }
 
 document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "certified-only") {
-    renderAllFigures();
+  if (event.target && event.target.id === "certified-only-tce") {
+    renderTceMaterialFigures();
+  }
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target && event.target.id === "violin-thickness-min-eff") {
+    renderViolinThicknessPlot(tableData);
   }
 });
 
