@@ -24,6 +24,8 @@ function renderViolinThicknessPlot(rows) {
   if (minEffValueEl) {
     minEffValueEl.textContent = MIN_EFF.toFixed(1);
   }
+  
+  if (efficiency < MIN_EFF) return null;
 
   const normalize = (value) =>
     String(value ?? "")
