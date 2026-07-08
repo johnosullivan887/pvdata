@@ -461,6 +461,41 @@ function renderTceMaterialFigures() {
   if (typeof renderRearTcePlot === "function") renderRearTcePlot(tableData);
 }
 
+document.addEventListener("change", (event) => {
+  const id = event.target?.id;
+
+  if (id === "certified-only-tce") {
+    renderTceMaterialFigures();
+    return;
+  }
+
+  if (id === "certified-only-violin-groups") {
+    renderViolinGroupsPlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-violin-thickness") {
+    renderViolinThicknessPlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-heatmap") {
+    renderCombinationHeatmap(tableData);
+    return;
+  }
+
+  if (id === "certified-only-timeline") {
+    renderTimelinePlot(tableData);
+    return;
+  }
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target && event.target.id === "violin-thickness-min-eff") {
+    renderViolinThicknessPlot(tableData);
+  }
+});
+
 function bindDownloadButtons() {
   if (!window.PVDataDownload) return;
 
