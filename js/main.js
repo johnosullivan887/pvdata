@@ -255,8 +255,7 @@ function rowMatchesDatabase(row, filters) {
   if (filters.year !== "all" && getDatabaseYear(row) !== filters.year) return false;
   if (filters.cell !== "all" && getDatabaseCell(row) !== filters.cell) return false;
   if (filters.front !== "all" && getDatabaseFrontTCO(row) !== filters.front) return false;
-  if (filters.interlayer !== "all" && getDatabaseInterlayerTCE(row) !== filters.interlayer)
-    return false;
+  if (filters.interlayer !== "all" && getDatabaseInterlayerTCE(row) !== filters.interlayer) return false;
   if (filters.rear !== "all" && getDatabaseRearTCE(row) !== filters.rear) return false;
 
   return true;
@@ -269,6 +268,7 @@ function renderDatabaseTable() {
 
   const filters = getDatabaseFilters();
   const filteredRows = databaseRows.filter((row) => rowMatchesDatabase(row, filters));
+  window.filteredDatabaseRows = filteredRows;
 
   summaryEl.innerHTML = `
     Showing <strong>${filteredRows.length}</strong> of <strong>${databaseRows.length}</strong> rows.
@@ -450,6 +450,9 @@ function renderAllFigures() {
   if (typeof renderViolinThicknessPlot === "function") renderViolinThicknessPlot(tableData);
   if (typeof renderCombinationHeatmap === "function") renderCombinationHeatmap(tableData);
   if (typeof renderTimelinePlot === "function") renderTimelinePlot(tableData);
+  if (typeof renderInterlayerTimelinePlot === "function") renderInterlayerTimelinePlot(tableData);
+  if (typeof renderRearTimelinePlot === "function") renderRearTimelinePlot(tableData);
+  if (typeof renderBottomCellTimelinePlot === "function") renderBottomCellTimelinePlot(tableData);
 }
 
 function renderTceMaterialFigures() {
@@ -457,9 +460,82 @@ function renderTceMaterialFigures() {
   if (typeof renderInterlayerTcePlot === "function") renderInterlayerTcePlot(tableData);
   if (typeof renderRearTcePlot === "function") renderRearTcePlot(tableData);
 }
+
+function bindDownloadButtons() {
+  if (!window.PVDataDownload) return;
+
+  window.PVDataDownload.bindButton(
+    "download-database-filtered",
+    "PVData_database_filtered.csv",
+    () => window.filteredDatabaseRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-indium-filtered",
+    "PVData_indium_filtered.csv",
+    () => window.filteredIndiumRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-front-tce-filtered",
+    "PVData_front_tce_filtered.csv",
+    () => window.filteredFrontTceRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-interlayer-tce-filtered",
+    "PVData_interlayer_tce_filtered.csv",
+    () => window.filteredInterlayerTceRows || []
+  );
+
+  window.PVDataDownload.bindButton(
+    "download-rear-tce-filtered",
+    "PVData_rear_tce_filtered.csv",
+    () => window.filteredRearTceRows || []
+  );
+}
+
 document.addEventListener("change", (event) => {
-  if (event.target && event.target.id === "certified-only-tce") {
+  const id = event.target?.id;
+
+  if (id === "certified-only-tce") {
     renderTceMaterialFigures();
+    return;
+  }
+
+  if (id === "certified-only-violin-groups") {
+    renderViolinGroupsPlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-violin-thickness") {
+    renderViolinThicknessPlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-heatmap") {
+    renderCombinationHeatmap(tableData);
+    return;
+  }
+
+  if (id === "certified-only-timeline") {
+    renderTimelinePlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-interlayer-timeline") {
+    renderInterlayerTimelinePlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-rear-timeline") {
+    renderRearTimelinePlot(tableData);
+    return;
+  }
+
+  if (id === "certified-only-bottom-cell-timeline") {
+    renderBottomCellTimelinePlot(tableData);
+    return;
   }
 });
 
@@ -473,8 +549,10 @@ async function loadData() {
   try {
     tableData = await loadCSV("data/tandem.csv");
     window.__tableData = tableData;
+
     renderDatabase(tableData);
     renderAllFigures();
+    bindDownloadButtons();
   } catch (error) {
     console.error("Failed to load data:", error);
 
