@@ -36,6 +36,7 @@
     <button class="nav-btn" data-target="indium-use">Indium Use in Tandems</button>
     <button class="nav-btn" data-target="tce-materials">Tandem TCE Materials</button>
     <button class="nav-btn" data-target="evaluation">Summary</button>
+    <button class="nav-btn" data-target="explorer">Explorer</button>
     <button class="nav-btn" data-target="about">About</button>
   </nav>
 
@@ -253,6 +254,95 @@
       </div>
     </section>
 
+    <section id="explorer" class="view">
+  <div class="panel">
+    <h2>Explorer</h2>
+    <p class="figure-note">
+      Filter complete device architectures, trace material flow across the stack, and compare papers with similar architectures and performance.
+    </p>
+    <label class="control-item" style="margin-bottom: 16px;">
+      <input type="checkbox" id="explorer-certified-only" />
+      Show certified values only
+    </label>
+  </div>
+
+  <div class="panel" style="margin-top: 24px;">
+    <h3>Architecture Builder</h3>
+    <div class="database-controls">
+      <select id="explorer-front">
+        <option value="Any">Any front TCE</option>
+        <option value="ITO-family">ITO-family</option>
+        <option value="IZO-family">IZO-family</option>
+        <option value="IZrO-family">IZrO-family</option>
+        <option value="Other InOx">Other InOx</option>
+        <option value="In-free / alternative">In-free / alternative</option>
+        <option value="Unclear / other">Unclear / other</option>
+      </select>
+
+      <select id="explorer-inter">
+        <option value="Any">Any interlayer</option>
+        <option value="ITO-family">ITO-family</option>
+        <option value="IZO-family">IZO-family</option>
+        <option value="IZrO-family">IZrO-family</option>
+        <option value="Other InOx">Other InOx</option>
+        <option value="In-free / alternative">In-free / alternative</option>
+        <option value="Tunnel junction / interlayer">Tunnel junction / interlayer</option>
+        <option value="No layer / no TCE">No layer / no TCE</option>
+        <option value="Unclear / other">Unclear / other</option>
+      </select>
+
+      <select id="explorer-rear">
+        <option value="Any">Any rear electrode</option>
+        <option value="ITO-family">ITO-family</option>
+        <option value="IZO-family">IZO-family</option>
+        <option value="IZrO-family">IZrO-family</option>
+        <option value="Other InOx">Other InOx</option>
+        <option value="In-free / alternative">In-free / alternative</option>
+        <option value="Metal / reflector">Metal / reflector</option>
+        <option value="No layer / no TCE">No layer / no TCE</option>
+        <option value="Unclear / other">Unclear / other</option>
+      </select>
+
+      <select id="explorer-bottom">
+        <option value="Any">Any bottom cell</option>
+        <option value="SHJ">SHJ</option>
+        <option value="TOPCon/POLO">TOPCon/POLO</option>
+        <option value="Al-BSF/PERC">Al-BSF/PERC</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <button id="explorer-reset" type="button">Reset</button>
+    </div>
+
+    <div id="explorer-builder-summary" class="database-summary"></div>
+    <div id="explorer-builder-table-wrap" class="table-wrap"></div>
+  </div>
+
+  <div class="panel" style="margin-top: 24px;">
+    <h3>Sankey diagram</h3>
+    <p class="figure-note">
+      Link width shows how many papers follow each material transition through the full tandem stack.
+    </p>
+    <div id="explorer-sankey-plot" style="width: 100%; height: 760px;"></div>
+  </div>
+
+  <div class="panel" style="margin-top: 24px;">
+    <h3>Similar-paper explorer</h3>
+    <p class="figure-note">
+      Search by author, year, or materials, then select a source paper and compare the nearest literature matches.
+    </p>
+    <input
+      id="explorer-source-search"
+      type="search"
+      placeholder="Search author, year, or materials"
+      style="margin-bottom: 12px;"
+    />
+    <div id="explorer-source-results-wrap" class="table-wrap"></div>
+    <div id="explorer-source-summary" class="database-summary"></div>
+    <div id="explorer-similar-table-wrap" class="table-wrap"></div>
+  </div>
+</section>
+
     <section id="about" class="view">
       <div class="panel">
         <h2>About</h2>
@@ -300,6 +390,7 @@
   <script src="js/figure_interlayer_timeline.js"></script>
   <script src="js/figure_rear_timeline.js"></script>
   <script src="js/figure_bottom_cell_timeline.js"></script>
+  <script src="js/figure_explorer.js"></script>
 
 
   <script src="js/main.js"></script>
