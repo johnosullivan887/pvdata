@@ -15,7 +15,6 @@ function renderBottomCellTimelinePlot(rows) {
     rows,
     plotDivId: "bottom-cell-timeline-plot",
     certifiedCheckboxId: "certified-only-bottom-cell-timeline",
-    title: "Bottom silicon cell adoption timeline",
     categories,
     classifyRow: (row) => {
       const raw = base.normalizeText(
