@@ -3,7 +3,7 @@ function renderIndiumPlot(rows) {
   if (!plotDiv) return;
 
   plotDiv.style.width = "100%";
-  plotDiv.style.height = "540px";
+  plotDiv.style.height = "840px";
 
   if (!window.PVDataIndium) {
     plotDiv.innerHTML = "<p>Indium helpers are missing.</p>";
